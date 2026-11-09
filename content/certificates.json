@@ -1,0 +1,4 @@
+{
+  "note": "Aril akan mengirim scan PDF sertifikat. Taruh semua PDF di content/certificates/pdf/, lalu jalankan `npm run ingest:certificates`. Script membuat thumbnail halaman pertama dan draf entri. Claude Code membaca isi PDF untuk mengisi judul, penerbit, dan tanggal, lalu meminta Aril mengonfirmasi. Setiap sertifikat menjadi satu satelit di orbit.",
+  "items": []
+}

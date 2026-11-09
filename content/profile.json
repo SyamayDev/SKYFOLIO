@@ -1,0 +1,51 @@
+{
+  "name": "Syahril Maimubdy",
+  "nickname": "Aril",
+  "siteName": "SKYFOLIO",
+  "tagline": {
+    "id": "Mahasiswa Ilmu Komputer",
+    "en": "Computer Science Student"
+  },
+  "education": {
+    "campus": "Universitas Sumatera Utara",
+    "campusShort": "USU",
+    "program": {
+      "id": "S1 Ilmu Komputer",
+      "en": "B.Sc. in Computer Science"
+    },
+    "currentSemester": 1,
+    "startYear": 2026
+  },
+  "hometown": {
+    "city": "Medan",
+    "province": "Sumatera Utara",
+    "country": "Indonesia",
+    "lat": 3.5952,
+    "lon": 98.6722,
+    "timezone": "Asia/Jakarta"
+  },
+  "bio": {
+    "id": "Saya adalah seorang mahasiswa Ilmu Komputer yang memiliki ketertarikan besar pada teknologi, pengembangan diri, dan dunia kewirausahaan. Saya senang mengeksplorasi hal-hal baru, mengembangkan ide menjadi karya nyata, serta mencoba berbagai pengalaman yang dapat menambah wawasan dan kemampuan. Saya memiliki semangat untuk terus belajar, berinovasi, dan berkontribusi melalui kemampuan yang saya miliki. Bagi saya, setiap proses adalah kesempatan untuk berkembang dan menciptakan sesuatu yang bermanfaat.",
+    "en": "I'm a Computer Science student with a strong interest in technology, personal growth, and entrepreneurship. I love exploring new things, turning ideas into real work, and seeking out experiences that broaden my knowledge and skills. I'm driven to keep learning, innovating, and contributing through what I can do. To me, every process is a chance to grow and to create something meaningful."
+  },
+  "interests": {
+    "id": ["Teknologi", "Pengembangan diri", "Kewirausahaan"],
+    "en": ["Technology", "Personal growth", "Entrepreneurship"]
+  },
+  "avatar": {
+    "description": "Pilot low-poly bergaya chibi yang mewakili Aril: seragam pilot, topi pilot, kacamata terbang di dahi, syal yang berkibar mengikuti kecepatan.",
+    "photo": "media/profile/aril.jpg",
+    "photoAlt": {
+      "id": "Foto Syahril Maimubdy",
+      "en": "Photo of Syahril Maimubdy"
+    }
+  },
+  "cv": {
+    "id": "/cv/Syahril-Maimubdy-CV-ID.pdf",
+    "en": "/cv/Syahril-Maimubdy-CV-EN.pdf"
+  },
+  "languages": {
+    "default": "id",
+    "available": ["id", "en"]
+  }
+}

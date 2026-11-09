@@ -1,0 +1,143 @@
+{
+  "note": "Koordinat lat/lon memakai Bumi nyata. Planetnya mainan (radius 400 unit), jadi area zona dibesar-besarkan. radiusDeg = radius area zona dalam derajat busur. Semua teks zona dua bahasa.",
+  "zones": [
+    {
+      "id": "home-airport",
+      "name": { "id": "Bandara Asal Medan", "en": "Medan Home Airport" },
+      "lat": 3.5952, "lon": 98.6722, "radiusDeg": 6,
+      "content": "spawn + tutorial",
+      "music": "home",
+      "features": ["runway-letters", "training-rings", "luggage-stacks", "hangar", "windsock", "fuel-truck", "istana-maimun-inspired", "grand-mosque-inspired", "km-counter-board"]
+    },
+    {
+      "id": "control-tower",
+      "name": { "id": "Menara Kontrol: Tentang Aril", "en": "Control Tower: About Aril" },
+      "lat": 3.85, "lon": 98.35, "radiusDeg": 1.5,
+      "content": "profile",
+      "music": "home",
+      "features": ["atc-radio-bio", "photo-frames", "rotating-radar-dish", "beacon-light"]
+    },
+    {
+      "id": "post-office",
+      "name": { "id": "Kantor Pos Udara: Kontak", "en": "Air Post Office: Contact" },
+      "lat": 5.4, "lon": 96.9, "radiusDeg": 2.5,
+      "content": "socials + contact-form",
+      "music": "home",
+      "features": ["parcel-drop-mailbox", "social-balloons", "paper-plane-launcher"]
+    },
+    {
+      "id": "lantern-valley",
+      "name": { "id": "Lembah Lampion Danau Toba", "en": "Lake Toba Lantern Valley" },
+      "lat": 2.62, "lon": 98.85, "radiusDeg": 2.5,
+      "content": "visitor-lanterns",
+      "music": "lantern",
+      "features": ["lake-with-island", "lantern-release-pier", "fireflies-at-night"]
+    },
+    {
+      "id": "project-archipelago",
+      "name": { "id": "Kepulauan Proyek", "en": "Project Archipelago" },
+      "lat": -12.0, "lon": 87.0, "radiusDeg": 14,
+      "content": "projects",
+      "music": "adventure",
+      "features": ["auto-placed-islands", "landing-strips", "diorama-presets", "lighthouses"]
+    },
+    {
+      "id": "skill-peaks",
+      "name": { "id": "Pegunungan Skill", "en": "Skill Peaks" },
+      "lat": 29.0, "lon": 85.0, "radiusDeg": 8,
+      "content": "skills",
+      "music": "mountain",
+      "features": ["peak-height-by-level", "tech-logo-rings", "skill-balloons", "snow-caps", "prayer-flag-style-bunting-generic"]
+    },
+    {
+      "id": "journey-stream",
+      "name": { "id": "Arus Perjalanan", "en": "Journey Jet Stream" },
+      "lat": 0.0, "lon": 98.6722, "radiusDeg": 0,
+      "path": "equatorial ring, altitude 34, eastward from Medan meridian",
+      "content": "timeline",
+      "music": "journey",
+      "features": ["wind-ribbon-tube", "year-checkpoints", "auto-carry-current"]
+    },
+    {
+      "id": "contribution-city",
+      "name": { "id": "Kota Kontribusi", "en": "Contribution City" },
+      "lat": -25.0, "lon": 134.0, "radiusDeg": 9,
+      "content": "github-contributions",
+      "music": "city",
+      "features": ["building-per-day", "height-by-commits", "night-windows", "repo-billboards"]
+    },
+    {
+      "id": "hangar-lab",
+      "name": { "id": "Hangar Eksperimen & Kawah Nekat", "en": "Experiment Hangar & Daredevil Crater" },
+      "lat": -6.1, "lon": 105.42, "radiusDeg": 2.5,
+      "content": "experiments + crater-secret",
+      "music": "lab",
+      "features": ["volcano-crater-trigger", "weird-machines", "global-crater-counter", "lava-glow-at-night"]
+    },
+    {
+      "id": "mc-stage",
+      "name": { "id": "Panggung MC", "en": "MC Stage" },
+      "lat": 48.5, "lon": 9.0, "radiusDeg": 3,
+      "content": "easter-egg:mc",
+      "music": "stage",
+      "features": ["giant-microphone", "spotlights", "applause-on-flyby"]
+    },
+    {
+      "id": "aril-kitchen",
+      "name": { "id": "Dapur Aril", "en": "Aril's Kitchen" },
+      "lat": 38.9, "lon": 35.2, "radiusDeg": 3,
+      "content": "easter-egg:cooking",
+      "music": "kitchen",
+      "features": ["giant-wok", "ingredient-crates-halal", "steam-puffs"]
+    },
+    {
+      "id": "gym-island",
+      "name": { "id": "Pulau Gym", "en": "Gym Island" },
+      "lat": 20.5, "lon": -157.0, "radiusDeg": 3,
+      "content": "easter-egg:gym",
+      "music": "gym",
+      "features": ["giant-barbell-gate", "physics-dumbbells", "pr-scoreboard"]
+    },
+    {
+      "id": "fort-village",
+      "name": { "id": "Desa Benteng", "en": "Fort Village" },
+      "lat": 8.0, "lon": 20.0, "radiusDeg": 4,
+      "content": "easter-egg:games",
+      "music": "fort",
+      "features": ["destructible-walls-rebuild", "water-balloon-drop", "catapult"]
+    },
+    {
+      "id": "block-park",
+      "name": { "id": "Taman Balok", "en": "Block Park" },
+      "lat": -12.0, "lon": -55.0, "radiusDeg": 4,
+      "content": "easter-egg:games",
+      "music": "party",
+      "features": ["dancing-block-characters", "giant-stackable-blocks"]
+    },
+    {
+      "id": "sky-circuit",
+      "name": { "id": "Sirkuit Langit", "en": "Sky Circuit" },
+      "lat": 3.5952, "lon": 98.6722, "radiusDeg": 0,
+      "path": "great circle tilted 35 degrees, passes over home airport, altitude 22-60",
+      "content": "race",
+      "music": "race",
+      "features": ["24-rings", "start-gate", "daily-leaderboard-board", "ghost-of-your-best-lap"]
+    },
+    {
+      "id": "orbit",
+      "name": { "id": "Orbit Sertifikat", "en": "Certificate Orbit" },
+      "altitude": 260,
+      "content": "certificates",
+      "music": "space",
+      "features": ["satellite-per-certificate", "space-station-hub"]
+    },
+    {
+      "id": "moon",
+      "name": { "id": "Bulan", "en": "The Moon" },
+      "distance": 2000, "radius": 60,
+      "content": "secret",
+      "music": "moon",
+      "features": ["landing-pad", "flag-with-skyfolio-logo", "low-gravity", "earthrise-view", "secret-message-from-aril"]
+    }
+  ]
+}

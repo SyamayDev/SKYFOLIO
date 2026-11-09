@@ -1,0 +1,53 @@
+{
+  "note": "Jawaban offline Piko. Dipakai saat kuota AI habis, saat offline, atau saat intent lokal sudah cukup. Claude Code wajib melengkapi file ini dari isi folder content (minimal 40 pasangan per bahasa) di Fase 3. Setiap entri boleh membawa aksi autopilot.",
+  "entries": [
+    {
+      "id": "who",
+      "patterns": {
+        "id": ["siapa aril", "siapa kamu", "tentang aril", "kenalan"],
+        "en": ["who is aril", "about aril", "who are you"]
+      },
+      "answer": {
+        "id": "Kak Aril itu Syahril Maimubdy, mahasiswa Ilmu Komputer USU dari Medan. Dia suka teknologi, pengembangan diri, dan kewirausahaan. Yuk ke Menara Kontrol, ada ceritanya!",
+        "en": "Aril is Syahril Maimubdy, a Computer Science student at USU from Medan. He loves tech, personal growth, and entrepreneurship. Let's visit the Control Tower for his story!"
+      },
+      "action": { "tool": "fly_to_zone", "args": { "zoneId": "control-tower" } }
+    },
+    {
+      "id": "projects",
+      "patterns": {
+        "id": ["proyek", "project", "karya", "portofolio"],
+        "en": ["projects", "work", "portfolio"]
+      },
+      "answer": {
+        "id": "Proyek Kak Aril ada di Kepulauan Proyek! Piko antar ke pulau unggulan dulu, ya.",
+        "en": "Aril's projects live in the Project Archipelago! Let me take you to the featured island first."
+      },
+      "action": { "tool": "fly_to_project", "args": { "projectId": "featured:1" } }
+    },
+    {
+      "id": "contact",
+      "patterns": {
+        "id": ["kontak", "hubungi", "email", "whatsapp", "wa"],
+        "en": ["contact", "email", "reach", "hire"]
+      },
+      "answer": {
+        "id": "Kak Aril bisa dihubungi lewat email syahrilmaymubdi2505@gmail.com atau WhatsApp +62 822-6740-3010. Mau kirim pesan dari Kantor Pos Udara?",
+        "en": "You can reach Aril at syahrilmaymubdi2505@gmail.com or WhatsApp +62 822-6740-3010. Want to send a message from the Air Post Office?"
+      },
+      "action": { "tool": "fly_to_zone", "args": { "zoneId": "post-office" } }
+    },
+    {
+      "id": "cv",
+      "patterns": {
+        "id": ["cv", "resume", "riwayat hidup"],
+        "en": ["cv", "resume"]
+      },
+      "answer": {
+        "id": "Ini CV Kak Aril! Piko buka sekarang, ya.",
+        "en": "Here's Aril's CV! Opening it now."
+      },
+      "action": { "tool": "open_cv", "args": {} }
+    }
+  ]
+}

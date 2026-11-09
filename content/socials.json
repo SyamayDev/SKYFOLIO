@@ -1,0 +1,47 @@
+{
+  "contactEmail": "syahrilmaymubdi2505@gmail.com",
+  "contactFormDeliversTo": "syahrilmaymubdi2505@gmail.com",
+  "links": [
+    {
+      "id": "email",
+      "label": "Email",
+      "value": "syahrilmaymubdi2505@gmail.com",
+      "url": "mailto:syahrilmaymubdi2505@gmail.com",
+      "balloonColor": "sun",
+      "public": true
+    },
+    {
+      "id": "whatsapp",
+      "label": "WhatsApp",
+      "value": "+62 822-6740-3010",
+      "url": "https://wa.me/6282267403010",
+      "balloonColor": "leaf",
+      "public": true
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "value": "Syahril Maimubdy",
+      "url": "https://www.linkedin.com/in/syahril-maimubdy-65299034a",
+      "balloonColor": "sky",
+      "public": true
+    },
+    {
+      "id": "instagram",
+      "label": "Instagram",
+      "value": "@syahrilmaimubdymandai",
+      "url": "https://www.instagram.com/syahrilmaimubdymandai/",
+      "balloonColor": "berry",
+      "public": true
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "value": "SyamayDev",
+      "url": "https://github.com/SyamayDev",
+      "balloonColor": "ink",
+      "public": true
+    }
+  ],
+  "githubUsername": "SyamayDev"
+}

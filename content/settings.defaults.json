@@ -1,0 +1,66 @@
+{
+  "note": "Nilai bawaan menu Pengaturan. Semua bisa diubah pengunjung dan disimpan di localStorage (dibungkus try/catch).",
+  "language": "auto",
+  "languageFallback": "id",
+  "world": {
+    "realTimeDayNight": true,
+    "manualTimeOfDay": 10.0,
+    "realHometownWeather": true,
+    "manualWeather": "clear",
+    "uiThemeFollowsDayNight": true,
+    "seasons": true,
+    "ambientLife": true
+  },
+  "graphics": {
+    "quality": "auto",
+    "qualityOptions": ["auto", "low", "medium", "high", "ultra"],
+    "renderer": "auto",
+    "rendererOptions": ["auto", "webgpu", "webgl2"],
+    "fpsCap": 60,
+    "shadows": "auto",
+    "postProcessing": "auto",
+    "depthOfField": false,
+    "showFps": false
+  },
+  "audio": {
+    "master": 0.9,
+    "music": 0.7,
+    "engine": 0.8,
+    "wind": 0.6,
+    "sfx": 0.8,
+    "ambient": 0.7,
+    "voice": 1.0,
+    "ui": 0.6,
+    "radioStation": "syamay-fm",
+    "muteWhenTabHidden": true
+  },
+  "controls": {
+    "invertPitch": false,
+    "gyroSteering": false,
+    "gyroSensitivity": 1.0,
+    "touchJoystickSide": "left",
+    "assistLevel": "normal",
+    "assistOptions": ["full", "normal", "off"],
+    "vibration": true,
+    "cameraShake": true
+  },
+  "camera": {
+    "mode": "chase",
+    "modeOptions": ["chase", "cockpit", "cinematic"],
+    "fovBoost": true,
+    "speedLines": true
+  },
+  "copilot": {
+    "enabled": true,
+    "voice": true,
+    "subtitles": true,
+    "chatterLevel": "normal",
+    "chatterOptions": ["quiet", "normal", "chatty"]
+  },
+  "accessibility": {
+    "reducedMotion": "auto",
+    "highContrastUi": false,
+    "largeText": false,
+    "colorblindFriendlyMarkers": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "note": "Hal personal Aril yang disembunyikan di dunia. Semua aset dibuat ORIGINAL: tidak boleh memakai logo, karakter, nama dagang, atau rekaman lagu milik orang lain.",
+  "hobbies": [
+    {
+      "id": "gym",
+      "label": { "id": "Angkat beban / body building", "en": "Weightlifting / bodybuilding" },
+      "worldFeature": "gym-island",
+      "idea": "Pulau Gym: barbel raksasa yang bisa diterbangi lewat celahnya, dumbel fisika yang bisa ditabrak, rak beban yang bergoyang, papan skor 'PR' yang naik setiap kali pesawat menembus barbel. Achievement 'Angkat Beban'."
+    },
+    {
+      "id": "cooking",
+      "label": { "id": "Memasak", "en": "Cooking" },
+      "worldFeature": "aril-kitchen",
+      "idea": "Dapur Aril: kuali raksasa di atas tungku. Jatuhkan peti bahan (daging sapi, ayam, kambing, rempah, cabai) ke kuali untuk memasak rendang, sate, atau steak. Uap mengepul, ada bunyi 'cesss'. Achievement 'Chef Aril'. Semua bahan halal: tidak ada ikan dan tidak ada babi."
+    },
+    {
+      "id": "games",
+      "label": { "id": "Main game strategi dan game balok", "en": "Strategy games and block-building games" },
+      "worldFeature": ["fort-village", "block-park"],
+      "idea": "Desa Benteng: desa mini bertembok dengan menara dan ketapel; pesawat bisa menjatuhkan balon air untuk 'menyerang' tembok (tembok fisika ambruk lalu tersusun lagi). Taman Balok: karakter-karakter balok generik yang berjoget saat pesawat lewat. Dilarang memakai nama, logo, atau karakter dari game asli."
+    },
+    {
+      "id": "mc",
+      "label": { "id": "MC dan pemateri", "en": "MC and speaker" },
+      "worldFeature": "mc-stage",
+      "idea": "Panggung MC: panggung dengan mikrofon raksasa dan lampu sorot. Saat pesawat melintas rendah, terdengar tepuk tangan dan suara 'tes, tes' dari mikrofon. Panel menampilkan pengalaman Aril sebagai MC dan pemateri."
+    }
+  ],
+  "favorites": {
+    "food": {
+      "id": "Olahan daging (sapi, ayam, kambing), selalu halal",
+      "en": "Meat dishes (beef, chicken, lamb), always halal"
+    },
+    "games": {
+      "id": "Game strategi membangun desa dan game dunia balok",
+      "en": "Village-building strategy games and block-world games"
+    },
+    "musicTaste": {
+      "id": "Musik Barat yang energik, musik Arab, DJ funkot, dan lagu-lagu Timur yang bikin joget",
+      "en": "Energetic Western pop, Arabic music, Indonesian funkot DJ mixes, and feel-good Eastern Indonesian songs"
+    },
+    "favoriteArtistsMentionOnly": ["Adele", "Rihanna", "Cash Cash"],
+    "favoriteArtistsNote": "Nama artis hanya boleh disebut Piko dalam teks atau suara. Lagu dan rekaman mereka TIDAK boleh diputar atau ditiru."
+  },
+  "radioStations": [
+    { "id": "syamay-fm", "label": "Syamay FM", "style": "Musik utama SKYFOLIO: nuansa Sunda yang ceria dan heroik, original, adaptif." },
+    { "id": "funkot-fm", "label": "Funkot FM", "style": "Beat funkot original 170-180 BPM, bass bergoyang, cocok untuk boost." },
+    { "id": "timur-fm", "label": "Timur FM", "style": "Groove pop Indonesia Timur original yang santai dan bikin joget." },
+    { "id": "gurun-fm", "label": "Gurun FM", "style": "Musik bernuansa maqam Timur Tengah, original, dengan perkusi darbuka sintetis." },
+    { "id": "energi-fm", "label": "Energi FM", "style": "Pop-EDM Barat original yang energik dengan drop besar." }
+  ]
+}

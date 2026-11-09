@@ -1,0 +1,10 @@
+node_modules
+dist
+public/earth
+scripts/.cache
+tests/shots
+test-results
+playwright-report
+package-lock.json
+*.md
+content

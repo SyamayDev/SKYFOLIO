@@ -1,0 +1,82 @@
+{
+  "note": "Urut dari yang terbaru. Field bertanda needsConfirmation=true tampil di Hangar sebagai peringatan kuning dan TIDAK menampilkan tahun di situs sampai Aril mengonfirmasi. Jangan mengarang tahun, peringkat, atau detail lain.",
+  "items": [
+    {
+      "id": "usu",
+      "type": "education",
+      "title": { "id": "Mahasiswa S1 Ilmu Komputer", "en": "B.Sc. Computer Science Student" },
+      "org": "Universitas Sumatera Utara",
+      "location": "Medan",
+      "start": "2026",
+      "end": null,
+      "summary": {
+        "id": "Sedang menempuh semester 1. Proyek UTS Dasar Pemrograman: SI-PANDRI bersama Tim SEPAKAT.",
+        "en": "Currently in my first semester. Intro to Programming midterm project: SI-PANDRI with Team SEPAKAT."
+      },
+      "checkpointIcon": "graduation-cap"
+    },
+    {
+      "id": "lks-web-2025",
+      "type": "competition",
+      "title": {
+        "id": "Lomba Kompetensi Siswa (LKS) bidang Web Technologies",
+        "en": "Student Skills Competition (LKS), Web Technologies"
+      },
+      "org": "LKS SMK",
+      "start": "2025",
+      "end": "2025",
+      "summary": {
+        "id": "Berkompetisi dari tingkat kota, provinsi, hingga nasional.",
+        "en": "Competed from the city level through the provincial level to the national level."
+      },
+      "result": null,
+      "needsConfirmation": ["result"],
+      "checkpointIcon": "trophy"
+    },
+    {
+      "id": "pkl-easy-digital",
+      "type": "internship",
+      "title": { "id": "Praktik Kerja Lapangan (PKL)", "en": "Vocational Internship" },
+      "org": "PT Easy Digital Indonesia",
+      "orgUrl": "https://easydigital.co.id/",
+      "orgDescription": {
+        "id": "Agensi digital marketing di Medan: pembuatan website dan landing page, SEO, iklan digital, dan pelatihan digital marketing.",
+        "en": "A Medan-based digital marketing agency: websites and landing pages, SEO, digital ads, and digital marketing training."
+      },
+      "location": "Medan",
+      "start": null,
+      "end": null,
+      "summary": { "id": "", "en": "" },
+      "needsConfirmation": ["start", "end", "summary"],
+      "checkpointIcon": "briefcase"
+    },
+    {
+      "id": "iteens",
+      "type": "organization",
+      "title": { "id": "Ketua iTeens", "en": "Chair of iTeens" },
+      "org": "SMK Tritech Informatika Medan",
+      "location": "Medan",
+      "start": null,
+      "end": null,
+      "summary": {
+        "id": "Memimpin iTeens, klub ekstrakurikuler teknologi yang melatih logika pemrograman, algoritma, problem solving, dasar web, dan OOP. Mengadakan workshop mingguan dan sesi coding interaktif, serta menjalankan bimbingan sebaya agar siswa senior membimbing adik kelas.",
+        "en": "Led iTeens, a tech extracurricular club that trains programming logic, algorithms, problem solving, web fundamentals, and OOP. Ran weekly workshops and interactive coding sessions, plus a peer-mentoring program where seniors coach juniors."
+      },
+      "needsConfirmation": ["start", "end"],
+      "checkpointIcon": "users"
+    },
+    {
+      "id": "smk-tritech",
+      "type": "education",
+      "title": { "id": "Siswa SMK", "en": "Vocational High School Student" },
+      "org": "SMK Tritech Informatika Medan",
+      "location": "Medan",
+      "major": null,
+      "start": null,
+      "end": "2026",
+      "summary": { "id": "", "en": "" },
+      "needsConfirmation": ["start", "end", "major"],
+      "checkpointIcon": "school"
+    }
+  ]
+}

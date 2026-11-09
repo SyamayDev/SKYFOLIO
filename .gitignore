@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Rahasia: hanya .env.example yang boleh di-commit
+.env
+.env.*
+!.env.example
+
+# Cache unduhan data Natural Earth
+scripts/.cache/
+
+# Hasil tes
+test-results/
+playwright-report/
+tests/shots/*.png
+tests/e2e/.artifacts/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vercel
