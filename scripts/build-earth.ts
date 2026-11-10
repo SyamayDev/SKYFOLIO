@@ -453,6 +453,8 @@ function mix3(a: number[], b: number[], t: number): [number, number, number] {
   return [lerp(a[0]!, b[0]!, t), lerp(a[1]!, b[1]!, t), lerp(a[2]!, b[2]!, t)];
 }
 
+const redNoise = new SimplexNoise(9090);
+
 function classify(
   centroid: Vector3,
   hs: [number, number, number],
@@ -484,16 +486,19 @@ function classify(
   } else if (absLat > 72 || (lat < -62 && hAvg > 1) || (lat > 60 && lon > -73 && lon < -12 && hAvg > 2)) {
     rgb = hash01(faceId * 7) > 0.35 ? ([...RGB.snow] as [number, number, number]) : ([...RGB.ice] as [number, number, number]);
     cls = TriClass.Snow;
-  } else if (hAvg > TERRAIN_MAX_HEIGHT * 0.62) {
+  } else if (hAvg > TERRAIN_MAX_HEIGHT * (absLat < 25 ? 0.86 : absLat < 40 ? 0.7 : 0.58)) {
+    // Salju abadi: di tropis hanya puncak tertinggi (Papua), makin rendah ke arah kutub.
     rgb = [...RGB.snow] as [number, number, number];
     cls = TriClass.Snow;
-  } else if (hAvg > TERRAIN_MAX_HEIGHT * 0.4 || (slope < 0.8 && hAvg > 3)) {
+  } else if (hAvg > TERRAIN_MAX_HEIGHT * (absLat < 25 ? 0.5 : 0.4) || (slope < 0.8 && hAvg > 3)) {
     rgb = [...RGB.rock] as [number, number, number];
     cls = TriClass.Rock;
   } else {
     const desert = desertAt(lat, lon);
     if (desert) {
-      rgb = desert.red && hash01(faceId * 3) > 0.45 ? ([...RGB.redRock] as [number, number, number]) : ([...RGB.desert] as [number, number, number]);
+      // Batu merah berkelompok (noise), bukan acak per muka, supaya tidak tampak kotak-kotak.
+      const n = redNoise.noise3(centroid.x * 0.06, centroid.y * 0.06, centroid.z * 0.06);
+      rgb = desert.red && n > 0.05 ? mix3(RGB.desert, RGB.redRock, smoothstep(0.05, 0.35, n)) : ([...RGB.desert] as [number, number, number]);
       cls = TriClass.Desert;
     } else if (absLat < 23) {
       rgb = [...RGB.grassTropic] as [number, number, number];

@@ -34,6 +34,8 @@ export interface FlightEnv {
   wind: Vector3;
   /** Prediksi tabrakan tanah dalam `FLIGHT.GROUND_AVOID_LOOKAHEAD` detik (opsional, untuk bantuan Penuh). */
   groundAhead?: () => boolean;
+  /** Arah landasan (tangen) bila pesawat sedang di landasan — untuk bantuan jaga arah di darat. */
+  headingHint?: Vector3 | null;
 }
 
 export class FlightState {
@@ -152,7 +154,7 @@ export class FlightModel {
     // --- 2. Throttle
     let target: number;
     if (!airborne) {
-      target = input.boost ? 1 : input.brake ? 0 : Math.max(c.IDLE_THROTTLE * 0.5, input.gas);
+      target = input.boost ? 1 : input.brake ? 0 : input.gas;
     } else if (input.brake) {
       target = c.IDLE_THROTTLE;
     } else if (input.boost) {
@@ -227,8 +229,10 @@ export class FlightModel {
       if (env.assist !== 'off') {
         // Batas angguk aman: cegah pemula langsung stall saat menahan "naik".
         if (airspeed < c.ENVELOPE_FREE_SPEED && upright) {
-          const k = clamp01((airspeed - c.STALL_SPEED - 2) / (c.ENVELOPE_FREE_SPEED - c.STALL_SPEED - 2));
-          const maxPitch = lerp(c.ENVELOPE_MIN_DEG, c.ENVELOPE_MAX_DEG, k) * DEG2RAD;
+          // Kuadratik: sangat ketat dekat kecepatan stall, longgar mendekati kecepatan bebas.
+          const k = clamp01((airspeed - c.STALL_SPEED) / (c.ENVELOPE_FREE_SPEED - c.STALL_SPEED));
+          const maxPitch = lerp(c.ENVELOPE_MIN_DEG, c.ENVELOPE_MAX_DEG, k * k) * DEG2RAD;
+          if (this.pitchHold !== null && this.pitchHold > maxPitch) this.pitchHold = maxPitch;
           if (pitch > maxPitch) {
             const over = pitch - maxPitch;
             if (pitchRate > 0) pitchRate *= Math.max(0, 1 - over / 0.17);
@@ -268,6 +272,17 @@ export class FlightModel {
       const fadeLow = Math.max(0.3, clamp01(groundSpeed / 2.5));
       turnRate = steer * GROUND.STEER_RATE_DEG * DEG2RAD * fadeHigh * fadeLow;
       yawRate = 0;
+      // Bantuan jaga arah landasan (Normal/Penuh): tanpa input kemudi, hidung pelan-pelan kembali sejajar landasan.
+      const hint = env.headingHint;
+      if (hint && env.assist !== 'off' && Math.abs(steer) < 0.1 && groundSpeed > 2) {
+        this.tmp.crossVectors(this.f, this.up); // kanan di bidang tangen
+        const ang = Math.atan2(hint.dot(this.tmp), hint.dot(this.f));
+        if (Math.abs(ang) < 0.55) turnRate += clamp(ang * GROUND.HEADING_HOLD_GAIN, -0.6, 0.6);
+      }
+      // Elevator di darat: "naik" baru berpengaruh mendekati kecepatan lepas landas (rotasi),
+      // supaya menahan W/↑ untuk melaju tidak membuat ekor menyeret landasan.
+      const sp = airspeed / c.TAKEOFF_SPEED;
+      pitchRate *= input.pitch > 0 ? smoothstep(0.7, 1.0, sp) : smoothstep(0.25, 0.7, sp);
     }
 
     if (this.roll.active) {

@@ -9,6 +9,7 @@ import { FLIGHT } from '../config/flight';
 import { MOON_RADIUS, PLANET_RADIUS } from '../config/world';
 
 const _g = new Vector3();
+const _imp = { x: 0, y: 0, z: 0 };
 
 export class RadialGravity {
   /** Posisi pusat Bulan (diisi Fase 2). Null = Bulan belum ada. */
@@ -45,12 +46,16 @@ export class RadialGravity {
   apply(dt: number): void {
     for (const body of this.bodies) {
       // Benda yang tidur tidak diberi gaya supaya tetap tidur (hemat CPU).
-      if (body.isSleeping() || !body.isDynamic()) continue;
+      // Body nonaktif (misalnya pesawat dibekukan di layar muat) tidak boleh menimbun kecepatan.
+      if (body.isSleeping() || !body.isDynamic() || !body.isEnabled()) continue;
       const t = body.translation();
       _g.set(t.x, t.y, t.z);
       this.accelerationAt(_g, _g);
       const m = body.mass() * dt;
-      body.applyImpulse({ x: _g.x * m, y: _g.y * m, z: _g.z * m }, false);
+      _imp.x = _g.x * m;
+      _imp.y = _g.y * m;
+      _imp.z = _g.z * m;
+      body.applyImpulse(_imp, false);
     }
   }
 }

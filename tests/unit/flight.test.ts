@@ -159,4 +159,35 @@ describe('model terbang', () => {
     expect(maxBank).toBeLessThan(3);
     expect(maxDev).toBeLessThan(2.5);
   });
+  it('satu putaran planet ±75 detik melewati kedua kutub tanpa glitch', () => {
+    const sim = makeSim(3.6, 98.67, 30, 0, FLIGHT.CRUISE_SPEED);
+    const start = sim.pos().normalize();
+    let north = false;
+    let south = false;
+    let maxBank = 0;
+    let maxDev = 0;
+    let lapTime = -1;
+    let travelled = 0;
+    let prev = sim.pos();
+    for (let i = 0; i < 90 * 60; i++) {
+      sim.step();
+      const p = sim.pos();
+      travelled += p.distanceTo(prev);
+      prev = p;
+      const lat = Math.asin(p.y / p.length()) / DEG2RAD;
+      if (lat > 89) north = true;
+      if (lat < -89) south = true;
+      maxBank = Math.max(maxBank, Math.abs(sim.model.state.bankDeg));
+      maxDev = Math.max(maxDev, Math.abs(p.length() - PLANET_RADIUS - 30));
+      // Kembali dekat titik awal setelah melewati kedua kutub.
+      if (north && south && lapTime < 0 && p.clone().normalize().angleTo(start) < 0.05) lapTime = i / 60;
+    }
+    cleanup(sim);
+    expect(north && south).toBe(true);
+    expect(maxBank).toBeLessThan(3);
+    expect(maxDev).toBeLessThan(3);
+    expect(lapTime).toBeGreaterThan(60);
+    expect(lapTime).toBeLessThan(90);
+    expect(Number.isFinite(travelled)).toBe(true);
+  });
 });

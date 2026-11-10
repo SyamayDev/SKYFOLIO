@@ -44,9 +44,8 @@ export function dampFactor(rate: number, dt: number): number {
 
 /** Bungkus sudut ke rentang (−π, π]. */
 export function wrapAngle(a: number): number {
-  a = (a + Math.PI) % TAU;
-  if (a < 0) a += TAU;
-  return a - Math.PI;
+  const w = ((((a + Math.PI) % TAU) + TAU) % TAU) - Math.PI; // [−π, π)
+  return w <= -Math.PI ? w + TAU : w;
 }
 
 export function moveTowards(current: number, target: number, maxDelta: number): number {

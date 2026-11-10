@@ -51,10 +51,11 @@ export class AirportFrame {
 
   /** Arah depan landasan (tangen) di titik lokal tertentu. */
   forwardAt(along: number, side: number, out = new Vector3()): Vector3 {
-    const p = this.toWorld(along, side, 0, out);
-    const up = p.clone().normalize();
-    const ahead = this.toWorld(along + 1, side, 0);
-    return out.copy(ahead).sub(p).addScaledVector(up, -ahead.clone().sub(p).dot(up)).normalize();
+    const p = this.toWorld(along, side, 0, _p);
+    const ahead = this.toWorld(along + 1, side, 0, _a);
+    _u.copy(p).normalize();
+    out.subVectors(ahead, p);
+    return out.addScaledVector(_u, -out.dot(_u)).normalize();
   }
 
   /**
@@ -77,3 +78,6 @@ export class AirportFrame {
 }
 
 const _local = { along: 0, side: 0 };
+const _p = new Vector3();
+const _a = new Vector3();
+const _u = new Vector3();

@@ -28,15 +28,15 @@ export const HOME = { lat: 3.5952, lon: 98.6722 } as const;
  * Bandara Medan.
  * Skala planet membuat 1° ≈ 7 unit, jadi landasan 60 unit membentang ±8,6°, lebih besar dari Sumatra Utara
  * dan akan menimpa Danau Toba. Karena itu landasan dibuat 40 unit dan diletakkan sebagai pulau bandara
- * reklamasi memanjang di Selat Malaka, tepat di utara Medan, tersambung ke pesisir Sumatra. Lihat docs/decisions.md.
+ * reklamasi memanjang di mulut Selat Malaka (utara Aceh–Medan), sehingga Danau Toba tetap utuh di selatannya. Lihat docs/decisions.md.
  *
  * Koordinat lokal (lihat world/AirportLayout.ts): along = sepanjang landasan (+ = arah lepas landas),
  * side = menyamping (+ = kanan saat menghadap arah lepas landas, yaitu sisi daratan Sumatra).
  */
 export const AIRPORT = {
   /** Titik tengah landasan. */
-  lat: 5.3,
-  lon: 98.8,
+  lat: 7.2,
+  lon: 97.7,
   /** Arah lepas landas (derajat dari utara, searah jarum jam): dari ujung barat laut ke tenggara. */
   headingDeg: 150,
   length: 40,
@@ -45,11 +45,13 @@ export const AIRPORT = {
   elevation: 1.4,
   /** Area datar = gabungan persegi panjang lokal [alongMin, alongMax, sideMin, sideMax]. */
   flatRects: [
-    [-24, 24, -4.5, 4.5], // landasan + bahu
-    [-21, -5, 4.5, 13], // apron: hangar, koper, kantong angin (sisi kanan, arah Aceh)
+    [-23, 23, -7, 5], // landasan + bahu kiri (laut) + bahu kanan
+    [-23, 14, 5, 8], // bahu kanan lebar di paruh barat laut (ujung tenggara dekat Danau Toba dibiarkan)
+    [-22, -2, 8, 14], // apron: hangar, koper, kantong angin (sisi kanan, arah Aceh)
+    [8, 19, 8, 14], // plaza landmark Medan (Istana Maimun & Masjid Raya versi sederhana)
   ] as readonly (readonly [number, number, number, number])[],
   /** Lebar transisi dari datar ke medan/pantai asli (unit). */
-  blendWidth: 2.5,
+  blendWidth: 5,
 } as const;
 
 /** Danau Toba dibesar-besarkan supaya terlihat dari udara (data aslinya terlalu kecil di skala ini). */

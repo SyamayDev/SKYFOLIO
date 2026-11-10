@@ -49,6 +49,8 @@ export interface ContactInfo {
 
 export interface RayHit {
   distance: number;
+  /** Indeks segitiga (trimesh) yang terkena, bila ada. */
+  featureId: number | undefined;
   point: Vector3;
   normal: Vector3;
   collider: RAPIER.Collider;
@@ -106,6 +108,7 @@ export class PhysicsWorld {
   private readonly ray: RAPIER.Ray;
   private readonly hit: RayHit = {
     distance: 0,
+    featureId: undefined,
     point: new Vector3(),
     normal: new Vector3(),
     collider: null as unknown as RAPIER.Collider,
@@ -195,6 +198,7 @@ export class PhysicsWorld {
     );
     if (!h) return null;
     this.hit.distance = h.timeOfImpact;
+    this.hit.featureId = h.featureId;
     this.hit.point.copy(origin).addScaledVector(dir, h.timeOfImpact);
     this.hit.normal.set(h.normal.x, h.normal.y, h.normal.z);
     this.hit.collider = h.collider;
