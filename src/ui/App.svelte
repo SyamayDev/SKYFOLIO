@@ -10,6 +10,7 @@
   import Preflight from './Preflight.svelte';
   import TouchControls from './TouchControls.svelte';
   import TopStack from './TopStack.svelte';
+  import TourOverlay from './TourOverlay.svelte';
 
   let rotateDismissed = $state(false);
   let flying = $derived($appPhase === 'flying');
@@ -27,6 +28,7 @@
     <Radar />
     <Overlays />
     {#if $inputDevice === 'touch' && !$paused}<TouchControls />{/if}
+    <TourOverlay />
     <TopStack rotate={showRotate} onrotate={() => (rotateDismissed = true)} />
     {#if $paused}<Pause />{/if}
     {#if !$paused && $panel}<Panels />{/if}

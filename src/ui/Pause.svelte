@@ -5,7 +5,7 @@
   import Settings from './Settings.svelte';
   import { panel, paused } from '../core/AppState';
 
-  function openPanel(kind: 'map' | 'passport' | 'bts'): void {
+  function openPanel(kind: 'map' | 'passport' | 'bts' | 'chat' | 'arrival'): void {
     paused.set(false);
     panel.set({ kind });
   }
@@ -28,10 +28,12 @@
       <div class="menu">
         <button class="primary" onclick={() => actions.resume()} data-testid="resume"><Icon name="play" size={20} /> {$t('pause.resume')}</button>
         <button onclick={() => actions.respawn()} data-testid="respawn"><Icon name="refresh" size={20} /> {$t('pause.respawn')}</button>
+        <button onclick={() => openPanel('chat')}><Icon name="chat" size={20} /> {$t('hud.chat')}</button>
         <button onclick={() => openPanel('map')}><Icon name="map" size={20} /> {$t('hud.map')}</button>
         <button onclick={() => openPanel('passport')}><Icon name="passport" size={20} /> {$t('hud.passport')}</button>
         <button onclick={() => (showSettings = true)} data-testid="open-settings"><Icon name="gear" size={20} /> {$t('pause.settings')}</button>
         <button onclick={() => openPanel('bts')}><Icon name="wrench" size={20} /> {$t('panels.bts')}</button>
+        <button onclick={() => openPanel('arrival')} data-testid="end-flight"><Icon name="takeoff" size={20} /> {$t('pause.endFlight')}</button>
         <a class="button" href="/ringkas/"><Icon name="file" size={20} /> {$t('pause.ringkas')}</a>
       </div>
     {/if}

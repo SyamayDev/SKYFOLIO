@@ -92,6 +92,11 @@ export function firstParagraph(md: string): string {
 }
 
 async function main(): Promise<void> {
+  // Di server build (Vercel/CI) tanpa token: lewati, supaya build cepat & tidak bergantung jaringan GitHub.
+  if (!TOKEN && (process.env.VERCEL || process.env.CI)) {
+    console.log('sync:github dilewati (build server tanpa GITHUB_TOKEN)');
+    return;
+  }
   const socials = JSON.parse(readFileSync(join(CONTENT_DIR, 'socials.json'), 'utf8')) as { githubUsername?: string };
   const user = socials.githubUsername ?? 'SyamayDev';
   console.log(`🐙 sync-github: ${user}${TOKEN ? ' (dengan token)' : ' (tanpa token)'}`);

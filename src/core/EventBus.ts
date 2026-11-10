@@ -45,6 +45,12 @@ export interface GameEvents {
   'rocket': { deployed: boolean };
   'reentry': { active: boolean };
   'moon:landed': { smooth: boolean };
+  'skin:equip': { id: string };
+  'world:night': { night: boolean };
+  'world:cloud': Record<string, never>;
+  'plane:idle': Record<string, never>;
+  /** Kejadian game umum (achievement): chat-ask, tour-done, circuit-top10, phoenix, … */
+  'game:event': { id: string };
   'zone:enter': { id: string; first: boolean };
   'zone:exit': { id: string };
   'stamp': { id: string; kind: 'zone' | 'landmark' | 'project' };

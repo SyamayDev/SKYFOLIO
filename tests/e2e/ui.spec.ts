@@ -61,6 +61,41 @@ test.describe('UI Fase 1', () => {
   });
 });
 
+test.describe('Piko (Fase 3)', () => {
+  test('tanya "proyek terbaik" di obrolan → pesawat terbang ke pulau unggulan', async ({ page }) => {
+    const con = watchConsole(page);
+    await openExperience(page);
+    await board(page);
+    await page.getByTestId('open-chat').click();
+    await page.getByTestId('chat-input').fill('bawa aku ke proyek terbaikmu');
+    await page.getByTestId('chat-send').click();
+    await expect(page.getByTestId('chat-log')).toContainText('SI-RAJU');
+    await expect(page.locator('.autopilot')).toBeVisible({ timeout: 10_000 });
+    const ap = await page.evaluate(() => (window as unknown as { __skyfolio: Hooks }).__skyfolio.autopilot());
+    expect(ap).toEqual({ active: true, target: 'si-raju' });
+    expect(con.problems).toEqual([]);
+  });
+
+  test('"Take me to the moon" → autopilot ke Bulan; Mode Rekruter berjalan', async ({ page }) => {
+    const con = watchConsole(page);
+    await openExperience(page);
+    await board(page);
+    await page.getByTestId('open-chat').click();
+    await page.getByTestId('chat-input').fill('Take me to the moon');
+    await page.getByTestId('chat-send').click();
+    await expect(page.locator('.autopilot')).toBeVisible({ timeout: 10_000 });
+    expect((await page.evaluate(() => (window as unknown as { __skyfolio: Hooks }).__skyfolio.autopilot())).target).toBe('moon');
+    // Tur rekruter dari obrolan.
+    await page.getByTestId('open-chat').click();
+    await page.getByTestId('chat-input').fill('mulai tur');
+    await page.getByTestId('chat-send').click();
+    await expect(page.getByTestId('tour')).toBeVisible({ timeout: 10_000 });
+    await page.getByTestId('tour-next').click();
+    await expect(page.getByTestId('tour')).toContainText('2/');
+    expect(con.problems).toEqual([]);
+  });
+});
+
 test.describe('halaman statis', () => {
   test('Mode Ringkas memuat profil dan proyek tanpa error', async ({ page }) => {
     const con = watchConsole(page);

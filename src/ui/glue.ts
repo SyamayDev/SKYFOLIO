@@ -9,6 +9,7 @@ import { settings } from '../core/Settings';
 import { store } from '../core/Store';
 import { tr } from '../i18n';
 import { pushToast } from './toasts';
+import { wireChatter } from '../ai/Chatter';
 
 export interface PikoLine {
   text: string;
@@ -58,29 +59,14 @@ export function wireUi(): void {
     const lm = content.get().landmarks.landmarks.find((x) => x.id === e.id);
     if (lm && e.first) pushToast(tr('passport.landmark', { name: L(lm.name) }), 'success', 'camera');
   });
-  // Perjalanan ke angkasa (docs/03 bagian 8–10): Piko memandu setiap lapisan.
-  bus.on('rocket', (e) => {
-    if (e.deployed) sayPiko(tr('space.rocket'), 'wow', 3);
-  });
-  bus.on('flight:regime', (e) => {
-    if (e.regime === 'stratosphere' && e.prev === 'air') sayPiko(tr('space.strato'), 'wow', 2);
-    else if (e.regime === 'space' && e.prev !== 'moon') sayPiko(tr('space.space'), 'wow', 3);
-    else if (e.regime === 'moon') sayPiko(tr('space.moon'), 'happy', 3);
-    else if (e.regime === 'air' && e.prev === 'stratosphere') sayPiko(tr('space.back'), 'happy', 2);
-  });
-  bus.on('reentry', (e) => {
-    if (e.active) sayPiko(tr('space.reentry'), 'wow', 3);
-  });
-  bus.on('moon:landed', (e) => {
-    sayPiko(tr(e.smooth ? 'space.moonLandedSmooth' : 'space.moonLandedHard'), e.smooth ? 'wow' : 'happy', 3);
-    if (e.smooth) setTimeout(() => panel.set({ kind: 'zone', id: 'moon' }), 1600);
-  });
-  bus.on('canopy', (e) => {
-    if (e.closed && settings.get().controls.canopy === 'auto') sayPiko(tr('canopy.closing'), 'happy', 1);
-  });
   bus.on('weather:home', (e) => {
     homeWeather.set(e);
   });
+  // Mendarat mulus di Bulan → panel Bulan (pesan rahasia).
+  bus.on('moon:landed', (e) => {
+    if (e.smooth) setTimeout(() => panel.set({ kind: 'zone', id: 'moon' }), 1600);
+  });
+  wireChatter();
 }
 
 /** Cuaca nyata Medan terakhir (untuk HUD/panel Menara & obrolan Piko). */

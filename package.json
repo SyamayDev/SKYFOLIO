@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "prebuild": "npm run validate:content && npm run optimize:media && npm run sync:github",
+    "prebuild": "npm run validate:content && npm run build:knowledge && npm run optimize:media && npm run sync:github",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && svelte-check --tsconfig ./tsconfig.json --threshold warning --fail-on-warnings",
     "lint": "eslint . --max-warnings 0",
@@ -24,7 +24,8 @@
     "ingest:certificates": "tsx scripts/ingest-certificates.ts",
     "optimize:media": "tsx scripts/optimize-media.ts",
     "build:cv": "tsx scripts/build-cv.ts",
-    "validate:content": "tsx scripts/validate-content.ts"
+    "validate:content": "tsx scripts/validate-content.ts",
+    "build:knowledge": "tsx scripts/build-knowledge.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

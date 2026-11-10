@@ -34,6 +34,10 @@ import { Sky } from '../world/Sky';
 import { sunDirection } from '../world/Sun';
 import { WorldClock, dayPartOf } from '../world/WorldClock';
 import { Weather } from '../world/Weather';
+import { AchievementTracker } from '../game/Achievements';
+import { patchProgress, progress } from '../game/Progress';
+import { Social } from '../game/Social';
+import { skinById } from '../game/Skins';
 import { MusicEngine, toStation } from '../audio/MusicEngine/MusicEngine';
 import { ZONE_THEME, type ThemeId } from '../audio/MusicEngine/themes';
 import { WorldAudio } from '../audio/WorldAudio';
@@ -88,6 +92,15 @@ export class Experience {
   stepper = new FixedStepper(1 / 60, 4);
   readonly audio = new AudioManager();
   music: MusicEngine | null = null;
+  achievements: AchievementTracker | null = null;
+  social: Social | null = null;
+  private statDist = 0;
+  private statTime = 0;
+  private statAlt = 0;
+  private statFlush = 0;
+  private wasNight = false;
+  private wasInCloud = false;
+  private wasIdle = false;
   worldAudio: WorldAudio | null = null;
   private musicBoost = 0;
   renderer!: Renderer;
@@ -293,6 +306,7 @@ export class Experience {
     this.updateCameraTarget();
     this.rig.snap(this.camTarget);
     this.applyQuality();
+    this.setupGame();
     this.onResize();
     window.addEventListener('resize', this.onResize);
     this.unsubs.push(() => window.removeEventListener('resize', this.onResize));
@@ -335,6 +349,31 @@ export class Experience {
     const down = _w.copy(dir).normalize().negate();
     const hit = this.physics.castRay(origin, down, 80);
     return hit ? hit.point.length() - PLANET_RADIUS : null;
+  }
+
+  /** Achievement & skin (Fase 4). */
+  private setupGame(): void {
+    this.achievements = new AchievementTracker();
+    this.social = new Social({
+      setLanterns: (l) => this.lantern.setLanterns(l),
+      releaseLanternAnim: () => this.lantern.releaseLantern(),
+      setTotalKm: (km) => this.airportZone.setTotalKm(km),
+    });
+    this.unsubs.push(() => this.social?.dispose());
+    const apply = (id: string): void => this.plane.model.setPaint(skinById(id)?.paint ?? null);
+    apply(progress.get().skin);
+    this.unsubs.push(
+      bus.on('skin:equip', (e) => apply(e.id)),
+      bus.on('plane:takeoff', () => patchProgress((p) => void (p.stats.flights += 1))),
+      bus.on('plane:crash', (e) => {
+        if (e.tier >= 2) patchProgress((p) => void (p.stats.crashes += 1));
+      }),
+      bus.on('achievement', () => {
+        this.music?.stinger('achievement');
+        this.plane.piko.emote('cheer');
+      }),
+      () => this.achievements?.dispose(),
+    );
   }
 
   private startAudioWorld(): void {
@@ -581,6 +620,54 @@ export class Experience {
       this.planet.updateColliders(pos);
       this.airport.update(dt, this.time.elapsed, pos, this.wind, night);
       this.updateWorldSystems(dt, night);
+      // Kejadian untuk obrolan otomatis Piko.
+      if (this.boarded) {
+        const isNight = uNight.value > 0.6;
+        if (isNight !== this.wasNight) {
+          this.wasNight = isNight;
+          bus.emit('world:night', { night: isNight });
+        }
+        const inCloud = this.cloudDensity > 0.55;
+        if (inCloud && !this.wasInCloud) bus.emit('world:cloud', {});
+        this.wasInCloud = inCloud;
+        const idle = this.plane.idleTime > 25;
+        if (idle && !this.wasIdle) bus.emit('plane:idle', {});
+        this.wasIdle = idle;
+      }
+      if (this.boarded && this.social && !this.plane.ground.grounded) this.social.tick(dt, this.plane.flight.state.speed * dt);
+      // Statistik penerbangan (untuk layar Kedatangan), disimpan berkala supaya localStorage tidak ditulis tiap frame.
+      if (this.boarded && !this.plane.ground.grounded) {
+        this.statDist += this.plane.flight.state.speed * dt;
+        this.statTime += dt;
+        this.statAlt = Math.max(this.statAlt, this.plane.altitude);
+      }
+      this.statFlush += dt;
+      if (this.statFlush > 5 && (this.statDist > 0 || this.statTime > 0)) {
+        this.statFlush = 0;
+        const d = this.statDist;
+        const tm = this.statTime;
+        const alt = this.statAlt;
+        this.statDist = this.statTime = 0;
+        patchProgress((p) => {
+          p.stats.distance += d;
+          p.stats.flightTime += tm;
+          p.stats.maxAltitude = Math.max(p.stats.maxAltitude, alt);
+        });
+      }
+      if (this.boarded && this.achievements) {
+        const av = this.plane.body.angvel();
+        _w.set(1, 0, 0).applyQuaternion(this.plane.quaternion);
+        this.achievements.tick({
+          dt,
+          airborne: !this.plane.ground.grounded && !this.plane.water.inWater,
+          night,
+          cloud: this.cloudDensity,
+          storm: this.weather.current.storm,
+          lon: this.geo.lon,
+          pitchRate: av.x * _w.x + av.y * _w.y + av.z * _w.z,
+          lettersScattered: this.airport.letters.scatteredCount,
+        });
+      }
       if (this.boarded && this.plane.env.heightAboveGround < 6) {
         const hit = this.scatter.checkBrush(pos, this.time.elapsed, this.treeHit);
         if (hit) {

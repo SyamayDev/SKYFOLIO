@@ -61,6 +61,11 @@ export class CameraRig {
   private orbitYaw = 0;
   private orbitPitch = 0;
   private lastLook = -Infinity;
+  private cinematic = false;
+
+  setCinematic(on: boolean): void {
+    this.cinematic = on;
+  }
   private fov: number = CAMERA.FOV;
   private time = 0;
   private initialized = false;
@@ -115,7 +120,12 @@ export class CameraRig {
     this.time += dt;
     const cam = this.camera;
     // Kembali otomatis ke belakang pesawat setelah 2 detik tanpa geser.
-    if (now - this.lastLook > CAMERA.ORBIT_RETURN_DELAY) {
+    // Sinematik (Mode Rekruter): kamera mengayun pelan ke samping pesawat, tetap bisa digeser pemain.
+    if (this.cinematic && now - this.lastLook > CAMERA.ORBIT_RETURN_DELAY) {
+      const k = dampFactor(0.8, dt);
+      this.orbitYaw += (Math.sin(this.time * 0.13) * 1.05 - this.orbitYaw) * k;
+      this.orbitPitch += (0.16 + Math.sin(this.time * 0.09) * 0.08 - this.orbitPitch) * k;
+    } else if (now - this.lastLook > CAMERA.ORBIT_RETURN_DELAY) {
       const k = dampFactor(CAMERA.ORBIT_RETURN_RATE, dt);
       this.orbitYaw += -this.orbitYaw * k;
       this.orbitPitch += -this.orbitPitch * k;

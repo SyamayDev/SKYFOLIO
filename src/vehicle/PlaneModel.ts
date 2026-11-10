@@ -10,6 +10,7 @@
 import {
   AdditiveBlending,
   CanvasTexture,
+  Color,
   ConeGeometry,
   DoubleSide,
   Group,
@@ -25,7 +26,7 @@ import {
   type Material,
 } from 'three';
 import { MeshBasicNodeMaterial, MeshToonNodeMaterial } from 'three/webgpu';
-import { color, dot, float, mix, normalView, oneMinus, positionGeometry, positionViewDirection, pow, sin, smoothstep, time, uniform } from 'three/tsl';
+import { attribute, color, distance, dot, float, mix, normalView, oneMinus, positionGeometry, positionViewDirection, pow, sin, smoothstep, time, uniform, vec3 } from 'three/tsl';
 import { EXTRA, PALETTE } from '../config/palette';
 import { Kit, airfoilWing, box, cone, cyl, extrude, lathe, rbox, sphere, strut, torus } from '../utils/modeling/Kit';
 import { createToonMaterial, createUnlitMaterial, toonGradient } from '../utils/modeling/materials';
@@ -157,6 +158,10 @@ export class PlaneModel {
   readonly flames: Mesh[] = [];
   readonly heatShell: Mesh;
   private readonly uThrust = uniform(0);
+  private readonly uBody = uniform(new Color(C.body));
+  private readonly uAccent = uniform(new Color(C.red));
+  private readonly uTrim = uniform(new Color(C.teal));
+  private readonly uSkinOn = uniform(0);
   private readonly uHeat = uniform(0);
   /** Titik duduk pilot (depan) dan co-pilot (belakang). */
   readonly pilotSeat = new Object3D();
@@ -170,6 +175,27 @@ export class PlaneModel {
   constructor() {
     this.root.name = 'plane-PK-ARL';
     const mat = createToonMaterial();
+    // Cat ulang (skin): warna verteks yang dekat dengan warna asli badan/aksen/garis dipetakan ke warna skin,
+    // dengan variasi gelap-terang aslinya dipertahankan. Bawaan = identitas (tanpa perubahan).
+    const vc = attribute('color', 'vec3');
+    let paint = mix(vc, vc, 0);
+    for (const [ref, u] of [
+      [C.body, this.uBody],
+      [C.bodyShade, this.uBody],
+      [C.red, this.uAccent],
+      [C.redDark, this.uAccent],
+      [C.teal, this.uTrim],
+      [C.tealDark, this.uTrim],
+    ] as const) {
+      const rc = new Color(ref);
+      const refV = vec3(rc.r, rc.g, rc.b);
+      const k = smoothstep(0.075, 0.02, distance(vc, refV)).mul(this.uSkinOn);
+      const ratio = dot(vc, vec3(1 / 3)).div(dot(refV, vec3(1 / 3)).max(0.001));
+      const darker = ref === C.bodyShade || ref === C.redDark || ref === C.tealDark ? 0.86 : 1;
+      paint = mix(paint, u.mul(ratio).mul(darker), k);
+    }
+    mat.vertexColors = false;
+    mat.colorNode = paint;
     this.material = mat;
     this.disposables.push(mat);
     const D = PLANE_DIMENSIONS;
@@ -496,6 +522,15 @@ export class PlaneModel {
     this.navLights.left.visible = on;
     this.navLights.right.visible = on;
     this.navLights.tail.visible = !navBlink || Math.sin(time * 6 + 2) > 0;
+  }
+
+  /** Ganti cat pesawat. `null` = warna asli PK-ARL. */
+  setPaint(p: { body: string; accent: string; trim: string } | null): void {
+    this.uSkinOn.value = p ? 1 : 0;
+    if (!p) return;
+    this.uBody.value.set(p.body);
+    this.uAccent.value.set(p.accent);
+    this.uTrim.value.set(p.trim);
   }
 
   /** Kit roket, api, dan panas masuk atmosfer (dari SpaceFlight). */

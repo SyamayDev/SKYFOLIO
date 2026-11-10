@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from './Icon.svelte';
+  import PassportExtras from './PassportExtras.svelte';
   import { ZONE_ICONS } from './icons';
   /** Paspor (docs/09 bagian 1): satu halaman per wilayah, stempel unik per zona & landmark (dicap tangan). */
   import { content, L } from '../content';
@@ -42,6 +43,8 @@
     </div>
   {/if}
 {/each}
+
+<PassportExtras />
 
 <style>
   .page {

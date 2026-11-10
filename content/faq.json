@@ -4,50 +4,1616 @@
     {
       "id": "who",
       "patterns": {
-        "id": ["siapa aril", "siapa kamu", "tentang aril", "kenalan"],
-        "en": ["who is aril", "about aril", "who are you"]
+        "id": [
+          "siapa aril",
+          "siapa kamu",
+          "tentang aril",
+          "kenalan"
+        ],
+        "en": [
+          "who is aril",
+          "about aril",
+          "who are you"
+        ]
       },
       "answer": {
         "id": "Kak Aril itu Syahril Maimubdy, mahasiswa Ilmu Komputer USU dari Medan. Dia suka teknologi, pengembangan diri, dan kewirausahaan. Yuk ke Menara Kontrol, ada ceritanya!",
         "en": "Aril is Syahril Maimubdy, a Computer Science student at USU from Medan. He loves tech, personal growth, and entrepreneurship. Let's visit the Control Tower for his story!"
       },
-      "action": { "tool": "fly_to_zone", "args": { "zoneId": "control-tower" } }
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "control-tower"
+        }
+      }
     },
     {
       "id": "projects",
       "patterns": {
-        "id": ["proyek", "project", "karya", "portofolio"],
-        "en": ["projects", "work", "portfolio"]
+        "id": [
+          "proyek",
+          "project",
+          "karya",
+          "portofolio"
+        ],
+        "en": [
+          "projects",
+          "work",
+          "portfolio"
+        ]
       },
       "answer": {
         "id": "Proyek Kak Aril ada di Kepulauan Proyek! Piko antar ke pulau unggulan dulu, ya.",
         "en": "Aril's projects live in the Project Archipelago! Let me take you to the featured island first."
       },
-      "action": { "tool": "fly_to_project", "args": { "projectId": "featured:1" } }
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "featured:1"
+        }
+      }
     },
     {
       "id": "contact",
       "patterns": {
-        "id": ["kontak", "hubungi", "email", "whatsapp", "wa"],
-        "en": ["contact", "email", "reach", "hire"]
+        "id": [
+          "kontak",
+          "hubungi",
+          "email",
+          "whatsapp",
+          "wa"
+        ],
+        "en": [
+          "contact",
+          "email",
+          "reach",
+          "hire"
+        ]
       },
       "answer": {
         "id": "Kak Aril bisa dihubungi lewat email syahrilmaymubdi2505@gmail.com atau WhatsApp +62 822-6740-3010. Mau kirim pesan dari Kantor Pos Udara?",
         "en": "You can reach Aril at syahrilmaymubdi2505@gmail.com or WhatsApp +62 822-6740-3010. Want to send a message from the Air Post Office?"
       },
-      "action": { "tool": "fly_to_zone", "args": { "zoneId": "post-office" } }
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "post-office"
+        }
+      }
     },
     {
       "id": "cv",
       "patterns": {
-        "id": ["cv", "resume", "riwayat hidup"],
-        "en": ["cv", "resume"]
+        "id": [
+          "cv",
+          "resume",
+          "riwayat hidup"
+        ],
+        "en": [
+          "cv",
+          "resume"
+        ]
       },
       "answer": {
         "id": "Ini CV Kak Aril! Piko buka sekarang, ya.",
         "en": "Here's Aril's CV! Opening it now."
       },
-      "action": { "tool": "open_cv", "args": {} }
+      "action": {
+        "tool": "open_cv",
+        "args": {}
+      }
+    },
+    {
+      "id": "campus",
+      "patterns": {
+        "id": [
+          "kuliah di mana",
+          "kampus",
+          "universitas",
+          "jurusan",
+          "kuliah apa",
+          "prodi"
+        ],
+        "en": [
+          "where does he study",
+          "university",
+          "campus",
+          "major",
+          "what does he study",
+          "college"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril kuliah S1 Ilmu Komputer di Universitas Sumatera Utara.",
+        "en": "Aril studies B.Sc. in Computer Science at Universitas Sumatera Utara."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "control-tower"
+        }
+      }
+    },
+    {
+      "id": "semester",
+      "patterns": {
+        "id": [
+          "semester berapa",
+          "semester",
+          "tahun berapa kuliah"
+        ],
+        "en": [
+          "which semester",
+          "what year",
+          "semester"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril sekarang semester 1 di USU.",
+        "en": "Aril is in semester 1 at USU."
+      }
+    },
+    {
+      "id": "hometown",
+      "patterns": {
+        "id": [
+          "asal dari mana",
+          "tinggal di mana",
+          "kota asal",
+          "orang mana",
+          "domisili"
+        ],
+        "en": [
+          "where is he from",
+          "hometown",
+          "where does he live",
+          "city"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril dari Medan, Sumatera Utara. Bandara kita juga di sana!",
+        "en": "Aril is from Medan, Sumatera Utara. Our home airport is there too!"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "home-airport"
+        }
+      }
+    },
+    {
+      "id": "interests",
+      "patterns": {
+        "id": [
+          "minat",
+          "tertarik",
+          "passion",
+          "suka apa"
+        ],
+        "en": [
+          "interests",
+          "passion",
+          "what does he like",
+          "interested in"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril tertarik pada teknologi, pengembangan diri dan kewirausahaan.",
+        "en": "Aril is into technology, personal growth and entrepreneurship."
+      }
+    },
+    {
+      "id": "bio",
+      "patterns": {
+        "id": [
+          "ceritakan tentang aril",
+          "profil",
+          "bio",
+          "perkenalan"
+        ],
+        "en": [
+          "tell me about aril",
+          "profile",
+          "bio",
+          "introduce"
+        ]
+      },
+      "answer": {
+        "id": "Syahril Maimubdy, mahasiswa ilmu komputer di USU. Kak Aril senang mengubah ide jadi karya nyata!",
+        "en": "Syahril Maimubdy, a computer science student at USU. Aril loves turning ideas into real work!"
+      },
+      "action": {
+        "tool": "show_panel",
+        "args": {
+          "panel": "profile"
+        }
+      }
+    },
+    {
+      "id": "name",
+      "patterns": {
+        "id": [
+          "nama lengkap",
+          "nama aril",
+          "nama asli"
+        ],
+        "en": [
+          "full name",
+          "real name",
+          "his name"
+        ]
+      },
+      "answer": {
+        "id": "Nama lengkapnya Syahril Maimubdy, panggilannya Aril.",
+        "en": "His full name is Syahril Maimubdy, and he goes by Aril."
+      }
+    },
+    {
+      "id": "best-project",
+      "patterns": {
+        "id": [
+          "proyek terbaik",
+          "proyek unggulan",
+          "karya terbaik",
+          "proyek favorit",
+          "proyek paling bagus"
+        ],
+        "en": [
+          "best project",
+          "featured project",
+          "top project",
+          "favorite project",
+          "proudest project"
+        ]
+      },
+      "answer": {
+        "id": "Proyek unggulan nomor satu: SI-RAJU 2.0! Aplikasi web tes minat bakat dan rekomendasi jurusan. Ayo terbang ke pulaunya!",
+        "en": "Featured project number one: SI-RAJU 2.0! A web app for interest and talent tests with study-major recommendations. Let's fly to its island!"
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "featured:1"
+        }
+      }
+    },
+    {
+      "id": "project-count",
+      "patterns": {
+        "id": [
+          "berapa proyek",
+          "jumlah proyek",
+          "daftar proyek",
+          "semua proyek"
+        ],
+        "en": [
+          "how many projects",
+          "list of projects",
+          "all projects"
+        ]
+      },
+      "answer": {
+        "id": "Ada 8 pulau proyek: SI-RAJU 2.0, SI-PANDRI, SI-MAUNG, EcoLens, I-Teens Management System, SI LABU, Warung Pak Din 2 dan iMuslim.",
+        "en": "There are 8 project islands: SI-RAJU 2.0, SI-PANDRI, SI-MAUNG, EcoLens, I-Teens Management System, SI LABU, Warung Pak Din 2 and iMuslim."
+      },
+      "action": {
+        "tool": "show_panel",
+        "args": {
+          "panel": "projects"
+        }
+      }
+    },
+    {
+      "id": "project-si-raju",
+      "patterns": {
+        "id": [
+          "apa itu si-raju 2.0",
+          "apa itu si raju",
+          "apa itu sistem rekomendasi jurusan",
+          "si-raju 2.0",
+          "si raju",
+          "sistem rekomendasi jurusan"
+        ],
+        "en": [
+          "what is si-raju 2.0",
+          "what is si raju",
+          "what is sistem rekomendasi jurusan",
+          "study-major recommendation system"
+        ]
+      },
+      "answer": {
+        "id": "SI-RAJU 2.0: Aplikasi web tes minat bakat dan rekomendasi jurusan. Dibuat dengan React, Vite, Tailwind CSS dan three.js.",
+        "en": "SI-RAJU 2.0: A web app for interest and talent tests with study-major recommendations. Built with React, Vite, Tailwind CSS and three.js."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "si-raju"
+        }
+      }
+    },
+    {
+      "id": "project-si-pandri",
+      "patterns": {
+        "id": [
+          "apa itu si-pandri",
+          "apa itu si pandri",
+          "apa itu sistem pengelolaan parfait laundry",
+          "si-pandri",
+          "si pandri",
+          "sistem pengelolaan parfait laundry"
+        ],
+        "en": [
+          "what is si-pandri",
+          "what is si pandri",
+          "what is sistem pengelolaan parfait laundry",
+          "parfait laundry management system"
+        ]
+      },
+      "answer": {
+        "id": "SI-PANDRI: Proyek UTS Dasar Pemrograman berbahasa Free Pascal, lengkap dengan game pendamping \"SI-PANDRI: Misi Laundry Beres!\". Dibuat dengan Free Pascal, HTML, CSS dan JavaScript.",
+        "en": "SI-PANDRI: An Intro to Programming midterm project written in Free Pascal, with a companion game, \"SI-PANDRI: Misi Laundry Beres!\". Built with Free Pascal, HTML, CSS and JavaScript."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "si-pandri"
+        }
+      }
+    },
+    {
+      "id": "project-si-maung",
+      "patterns": {
+        "id": [
+          "apa itu si-maung",
+          "apa itu si maung",
+          "apa itu sistem informasi manajemen keuangan",
+          "si-maung",
+          "si maung",
+          "sistem informasi manajemen keuangan"
+        ],
+        "en": [
+          "what is si-maung",
+          "what is si maung",
+          "what is sistem informasi manajemen keuangan",
+          "personal finance management system"
+        ]
+      },
+      "answer": {
+        "id": "SI-MAUNG: Aplikasi pencatat keuangan pribadi berbahasa Indonesia yang bisa mencatat transaksi lewat suara, dipandu maskot anak harimau 3D bernama MAUNG. Dibuat dengan React, Vite, Supabase dan three.js.",
+        "en": "SI-MAUNG: An Indonesian personal finance tracker that records transactions by voice, guided by MAUNG, a 3D tiger-cub mascot. Built with React, Vite, Supabase and three.js."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "si-maung"
+        }
+      }
+    },
+    {
+      "id": "project-ecolens",
+      "patterns": {
+        "id": [
+          "apa itu ecolens",
+          "apa itu ecolens",
+          "ecolens",
+          "ecolens"
+        ],
+        "en": [
+          "what is ecolens",
+          "what is ecolens"
+        ]
+      },
+      "answer": {
+        "id": "EcoLens: Aplikasi web 3D interaktif \"Lihat Dampak Sebelum Membeli\" yang membantu masyarakat memahami dampak lingkungan produk. Dibuat dengan JavaScript.",
+        "en": "EcoLens: An interactive 3D web app, \"See the Impact Before You Buy\", that helps people understand the environmental impact of products. Built with JavaScript."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "ecolens"
+        }
+      }
+    },
+    {
+      "id": "project-iteens-management",
+      "patterns": {
+        "id": [
+          "apa itu i-teens management system",
+          "apa itu iteens management",
+          "i-teens management system",
+          "iteens management"
+        ],
+        "en": [
+          "what is i-teens management system",
+          "what is iteens management"
+        ]
+      },
+      "answer": {
+        "id": "I-Teens Management System: Website modern untuk mengelola informasi organisasi I-Teens, kegiatan, anggota, dokumentasi, artikel, dan dasbor admin. Dibuat dengan React, Vite, Tailwind CSS dan Supabase.",
+        "en": "I-Teens Management System: A modern website to manage the I-Teens organization's information, events, members, documentation, articles, and admin dashboard. Built with React, Vite, Tailwind CSS and Supabase."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "iteens-management"
+        }
+      }
+    },
+    {
+      "id": "project-si-labu-smandu",
+      "patterns": {
+        "id": [
+          "apa itu si labu",
+          "apa itu si labu smandu",
+          "apa itu sistem laporan dan konsultasi perundungan sma negeri 2 medan",
+          "si labu",
+          "si labu smandu",
+          "sistem laporan dan konsultasi perundungan sma negeri 2 medan"
+        ],
+        "en": [
+          "what is si labu",
+          "what is si labu smandu",
+          "what is sistem laporan dan konsultasi perundungan sma negeri 2 medan",
+          "bullying report and counseling system for sma negeri 2 medan"
+        ]
+      },
+      "answer": {
+        "id": "SI LABU: Aplikasi pelaporan dan konsultasi perundungan untuk SMA Negeri 2 Medan, dengan form laporan tanpa login dan portal Guru BK. Dibuat dengan React, Vite dan Supabase.",
+        "en": "SI LABU: A bullying report and counseling app for SMA Negeri 2 Medan, with a no-login report form and a counselor portal. Built with React, Vite and Supabase."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "si-labu-smandu"
+        }
+      }
+    },
+    {
+      "id": "project-warung-pak-din",
+      "patterns": {
+        "id": [
+          "apa itu warung pak din 2",
+          "apa itu warung pak din",
+          "apa itu sistem pemesanan makanan dan minuman (pjbl dasar pemrograman)",
+          "warung pak din 2",
+          "warung pak din",
+          "sistem pemesanan makanan dan minuman (pjbl dasar pemrograman)"
+        ],
+        "en": [
+          "what is warung pak din 2",
+          "what is warung pak din",
+          "what is sistem pemesanan makanan dan minuman (pjbl dasar pemrograman)",
+          "food and drink ordering system (intro to programming pjbl)"
+        ]
+      },
+      "answer": {
+        "id": "Warung Pak Din 2: Program kasir Pascal untuk pemesanan makanan dan minuman, lengkap dengan pseudocode, flowchart, dan media interaktif. Dibuat dengan Free Pascal, HTML, CSS dan JavaScript.",
+        "en": "Warung Pak Din 2: A Pascal cashier program for food and drink orders, with pseudocode, a flowchart, and an interactive presentation. Built with Free Pascal, HTML, CSS and JavaScript."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "warung-pak-din"
+        }
+      }
+    },
+    {
+      "id": "project-imuslim",
+      "patterns": {
+        "id": [
+          "apa itu imuslim",
+          "apa itu imuslim",
+          "imuslim",
+          "imuslim"
+        ],
+        "en": [
+          "what is imuslim",
+          "what is imuslim"
+        ]
+      },
+      "answer": {
+        "id": "iMuslim: Aplikasi web (PWA) teman ibadah harian berbahasa Indonesia, dari Al-Qur'an dengan audio dan tafsir sampai jadwal sholat dan arah kiblat. Dibuat dengan React, Vite dan PWA.",
+        "en": "iMuslim: An Indonesian daily-worship web app (PWA), from the Qur'an with audio and tafsir to prayer times and qibla direction. Built with React, Vite and PWA."
+      },
+      "action": {
+        "tool": "fly_to_project",
+        "args": {
+          "projectId": "imuslim"
+        }
+      }
+    },
+    {
+      "id": "skills",
+      "patterns": {
+        "id": [
+          "skill",
+          "keahlian",
+          "kemampuan",
+          "bisa apa",
+          "jago apa",
+          "menguasai"
+        ],
+        "en": [
+          "skills",
+          "abilities",
+          "what can he do",
+          "tech stack",
+          "expertise"
+        ]
+      },
+      "answer": {
+        "id": "Skill andalan Kak Aril: JavaScript, PHP, SQL, React, Laravel dan CodeIgniter. Lihat semuanya di Pegunungan Skill!",
+        "en": "Aril's top skills: JavaScript, PHP, SQL, React, Laravel and CodeIgniter. See them all at Skill Peaks!"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "skill-peaks"
+        }
+      }
+    },
+    {
+      "id": "skills-programming-languages",
+      "patterns": {
+        "id": [
+          "bahasa pemrograman"
+        ],
+        "en": [
+          "programming languages"
+        ]
+      },
+      "answer": {
+        "id": "Bahasa Pemrograman: JavaScript, PHP, SQL, HTML dan CSS.",
+        "en": "Programming Languages: JavaScript, PHP, SQL, HTML and CSS."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "skill-peaks"
+        }
+      }
+    },
+    {
+      "id": "skills-frameworks-libraries",
+      "patterns": {
+        "id": [
+          "framework & library"
+        ],
+        "en": [
+          "frameworks & libraries"
+        ]
+      },
+      "answer": {
+        "id": "Framework & Library: React, Laravel dan CodeIgniter.",
+        "en": "Frameworks & Libraries: React, Laravel and CodeIgniter."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "skill-peaks"
+        }
+      }
+    },
+    {
+      "id": "skills-database-cloud",
+      "patterns": {
+        "id": [
+          "database & cloud"
+        ],
+        "en": [
+          "database & cloud"
+        ]
+      },
+      "answer": {
+        "id": "Database & Cloud: Supabase.",
+        "en": "Database & Cloud: Supabase."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "skill-peaks"
+        }
+      }
+    },
+    {
+      "id": "skills-soft-skills",
+      "patterns": {
+        "id": [
+          "soft skill"
+        ],
+        "en": [
+          "soft skills"
+        ]
+      },
+      "answer": {
+        "id": "Soft Skill: Public Speaking, Master of Ceremonies (MC) dan Speaker / Trainer.",
+        "en": "Soft Skills: Public Speaking, Master of Ceremonies (MC) and Speaker / Trainer."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "skill-peaks"
+        }
+      }
+    },
+    {
+      "id": "skill-javascript",
+      "patterns": {
+        "id": [
+          "bisa javascript",
+          "jago javascript",
+          "javascript"
+        ],
+        "en": [
+          "does he know javascript",
+          "can he use javascript",
+          "javascript"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! JavaScript ada di level 5 (Ahli).",
+        "en": "Yes! JavaScript is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-php",
+      "patterns": {
+        "id": [
+          "bisa php",
+          "jago php",
+          "php"
+        ],
+        "en": [
+          "does he know php",
+          "can he use php",
+          "php"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! PHP ada di level 5 (Ahli).",
+        "en": "Yes! PHP is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-sql",
+      "patterns": {
+        "id": [
+          "bisa sql",
+          "jago sql",
+          "sql"
+        ],
+        "en": [
+          "does he know sql",
+          "can he use sql",
+          "sql"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! SQL ada di level 5 (Ahli).",
+        "en": "Yes! SQL is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-html",
+      "patterns": {
+        "id": [
+          "bisa html",
+          "jago html",
+          "html"
+        ],
+        "en": [
+          "does he know html",
+          "can he use html",
+          "html"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! HTML ada di level 3 (Menengah).",
+        "en": "Yes! HTML is at level 3 (Intermediate)."
+      }
+    },
+    {
+      "id": "skill-css",
+      "patterns": {
+        "id": [
+          "bisa css",
+          "jago css",
+          "css"
+        ],
+        "en": [
+          "does he know css",
+          "can he use css",
+          "css"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! CSS ada di level 3 (Menengah).",
+        "en": "Yes! CSS is at level 3 (Intermediate)."
+      }
+    },
+    {
+      "id": "skill-react",
+      "patterns": {
+        "id": [
+          "bisa react",
+          "jago react",
+          "react"
+        ],
+        "en": [
+          "does he know react",
+          "can he use react",
+          "react"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! React ada di level 5 (Ahli).",
+        "en": "Yes! React is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-laravel",
+      "patterns": {
+        "id": [
+          "bisa laravel",
+          "jago laravel",
+          "laravel"
+        ],
+        "en": [
+          "does he know laravel",
+          "can he use laravel",
+          "laravel"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! Laravel ada di level 5 (Ahli).",
+        "en": "Yes! Laravel is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-codeigniter",
+      "patterns": {
+        "id": [
+          "bisa codeigniter",
+          "jago codeigniter",
+          "codeigniter"
+        ],
+        "en": [
+          "does he know codeigniter",
+          "can he use codeigniter",
+          "codeigniter"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! CodeIgniter ada di level 5 (Ahli).",
+        "en": "Yes! CodeIgniter is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-supabase",
+      "patterns": {
+        "id": [
+          "bisa supabase",
+          "jago supabase",
+          "supabase"
+        ],
+        "en": [
+          "does he know supabase",
+          "can he use supabase",
+          "supabase"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! Supabase ada di level 5 (Ahli).",
+        "en": "Yes! Supabase is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-public-speaking",
+      "patterns": {
+        "id": [
+          "bisa public speaking",
+          "jago public speaking",
+          "public speaking"
+        ],
+        "en": [
+          "does he know public speaking",
+          "can he use public speaking",
+          "public speaking"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! Public Speaking ada di level 5 (Ahli).",
+        "en": "Yes! Public Speaking is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-mc",
+      "patterns": {
+        "id": [
+          "bisa master of ceremonies (mc)",
+          "jago master of ceremonies (mc)",
+          "master of ceremonies (mc)"
+        ],
+        "en": [
+          "does he know master of ceremonies (mc)",
+          "can he use master of ceremonies (mc)",
+          "master of ceremonies (mc)"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! Master of Ceremonies (MC) ada di level 5 (Ahli).",
+        "en": "Yes! Master of Ceremonies (MC) is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "skill-speaker",
+      "patterns": {
+        "id": [
+          "bisa speaker / trainer",
+          "jago speaker / trainer",
+          "speaker / trainer"
+        ],
+        "en": [
+          "does he know speaker / trainer",
+          "can he use speaker / trainer",
+          "speaker / trainer"
+        ]
+      },
+      "answer": {
+        "id": "Bisa! Speaker / Trainer ada di level 5 (Ahli).",
+        "en": "Yes! Speaker / Trainer is at level 5 (Expert)."
+      }
+    },
+    {
+      "id": "journey",
+      "patterns": {
+        "id": [
+          "perjalanan",
+          "pengalaman",
+          "riwayat",
+          "pendidikan",
+          "organisasi"
+        ],
+        "en": [
+          "experience",
+          "journey",
+          "background",
+          "education",
+          "history"
+        ]
+      },
+      "answer": {
+        "id": "Perjalanan Kak Aril: Mahasiswa S1 Ilmu Komputer (Universitas Sumatera Utara), Lomba Kompetensi Siswa (LKS) bidang Web Technologies (LKS SMK) dan Praktik Kerja Lapangan (PKL) (PT Easy Digital Indonesia). Ikuti Arus Perjalanan, yuk!",
+        "en": "Aril's journey: B.Sc. Computer Science Student (Universitas Sumatera Utara), Student Skills Competition (LKS), Web Technologies (LKS SMK) and Vocational Internship (PT Easy Digital Indonesia). Ride the Journey Stream!"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "journey-stream"
+        }
+      }
+    },
+    {
+      "id": "timeline-usu",
+      "patterns": {
+        "id": [
+          "mahasiswa s1 ilmu komputer",
+          "universitas sumatera utara"
+        ],
+        "en": [
+          "b.sc. computer science student",
+          "universitas sumatera utara"
+        ]
+      },
+      "answer": {
+        "id": "Mahasiswa S1 Ilmu Komputer di Universitas Sumatera Utara: Sedang menempuh semester 1. Proyek UTS Dasar Pemrograman: SI-PANDRI bersama Tim SEPAKAT.",
+        "en": "B.Sc. Computer Science Student at Universitas Sumatera Utara: Currently in my first semester. Intro to Programming midterm project: SI-PANDRI with Team SEPAKAT."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "journey-stream"
+        }
+      }
+    },
+    {
+      "id": "timeline-lks-web-2025",
+      "patterns": {
+        "id": [
+          "lomba kompetensi siswa (lks) bidang web technologies",
+          "lks smk"
+        ],
+        "en": [
+          "student skills competition (lks), web technologies",
+          "lks smk"
+        ]
+      },
+      "answer": {
+        "id": "Lomba Kompetensi Siswa (LKS) bidang Web Technologies di LKS SMK: Berkompetisi dari tingkat kota, provinsi, hingga nasional.",
+        "en": "Student Skills Competition (LKS), Web Technologies at LKS SMK: Competed from the city level through the provincial level to the national level."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "journey-stream"
+        }
+      }
+    },
+    {
+      "id": "timeline-iteens",
+      "patterns": {
+        "id": [
+          "ketua iteens",
+          "smk tritech informatika medan"
+        ],
+        "en": [
+          "chair of iteens",
+          "smk tritech informatika medan"
+        ]
+      },
+      "answer": {
+        "id": "Ketua iTeens di SMK Tritech Informatika Medan: Memimpin iTeens, klub ekstrakurikuler teknologi yang melatih logika pemrograman, algoritma, problem solving, dasar web, dan OOP. Mengadakan workshop mingguan dan sesi coding interaktif, serta menjalankan bimbingan sebaya agar siswa senior membimbing adik kelas.",
+        "en": "Chair of iTeens at SMK Tritech Informatika Medan: Led iTeens, a tech extracurricular club that trains programming logic, algorithms, problem solving, web fundamentals, and OOP. Ran weekly workshops and interactive coding sessions, plus a peer-mentoring program where seniors coach juniors."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "journey-stream"
+        }
+      }
+    },
+    {
+      "id": "contact-email",
+      "patterns": {
+        "id": [
+          "email",
+          "email aril",
+          "akun email"
+        ],
+        "en": [
+          "email",
+          "aril email",
+          "email account"
+        ]
+      },
+      "answer": {
+        "id": "Email Kak Aril: syahrilmaymubdi2505@gmail.com.",
+        "en": "Aril's Email: syahrilmaymubdi2505@gmail.com."
+      },
+      "action": {
+        "tool": "open_link",
+        "args": {
+          "linkId": "email"
+        }
+      }
+    },
+    {
+      "id": "contact-whatsapp",
+      "patterns": {
+        "id": [
+          "whatsapp",
+          "whatsapp aril",
+          "akun whatsapp"
+        ],
+        "en": [
+          "whatsapp",
+          "aril whatsapp",
+          "whatsapp account"
+        ]
+      },
+      "answer": {
+        "id": "WhatsApp Kak Aril: +62 822-6740-3010.",
+        "en": "Aril's WhatsApp: +62 822-6740-3010."
+      },
+      "action": {
+        "tool": "open_link",
+        "args": {
+          "linkId": "whatsapp"
+        }
+      }
+    },
+    {
+      "id": "contact-linkedin",
+      "patterns": {
+        "id": [
+          "linkedin",
+          "linkedin aril",
+          "akun linkedin"
+        ],
+        "en": [
+          "linkedin",
+          "aril linkedin",
+          "linkedin account"
+        ]
+      },
+      "answer": {
+        "id": "LinkedIn Kak Aril: Syahril Maimubdy.",
+        "en": "Aril's LinkedIn: Syahril Maimubdy."
+      },
+      "action": {
+        "tool": "open_link",
+        "args": {
+          "linkId": "linkedin"
+        }
+      }
+    },
+    {
+      "id": "contact-instagram",
+      "patterns": {
+        "id": [
+          "instagram",
+          "instagram aril",
+          "akun instagram"
+        ],
+        "en": [
+          "instagram",
+          "aril instagram",
+          "instagram account"
+        ]
+      },
+      "answer": {
+        "id": "Instagram Kak Aril: @syahrilmaimubdymandai.",
+        "en": "Aril's Instagram: @syahrilmaimubdymandai."
+      },
+      "action": {
+        "tool": "open_link",
+        "args": {
+          "linkId": "instagram"
+        }
+      }
+    },
+    {
+      "id": "contact-github",
+      "patterns": {
+        "id": [
+          "github",
+          "github aril",
+          "akun github"
+        ],
+        "en": [
+          "github",
+          "aril github",
+          "github account"
+        ]
+      },
+      "answer": {
+        "id": "GitHub Kak Aril: SyamayDev.",
+        "en": "Aril's GitHub: SyamayDev."
+      },
+      "action": {
+        "tool": "open_link",
+        "args": {
+          "linkId": "github"
+        }
+      }
+    },
+    {
+      "id": "hobby-gym",
+      "patterns": {
+        "id": [
+          "angkat beban / body building",
+          "hobi gym"
+        ],
+        "en": [
+          "weightlifting / bodybuilding",
+          "gym hobby"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka angkat beban / body building! Ada zonanya juga, mau lihat?",
+        "en": "Aril loves weightlifting / bodybuilding! There's a zone for it, want to see?"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "gym-island"
+        }
+      }
+    },
+    {
+      "id": "hobby-cooking",
+      "patterns": {
+        "id": [
+          "memasak",
+          "hobi cooking"
+        ],
+        "en": [
+          "cooking",
+          "cooking hobby"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka memasak! Ada zonanya juga, mau lihat?",
+        "en": "Aril loves cooking! There's a zone for it, want to see?"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "aril-kitchen"
+        }
+      }
+    },
+    {
+      "id": "hobby-games",
+      "patterns": {
+        "id": [
+          "main game strategi dan game balok",
+          "hobi games"
+        ],
+        "en": [
+          "strategy games and block-building games",
+          "games hobby"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka main game strategi dan game balok! Ada zonanya juga, mau lihat?",
+        "en": "Aril loves strategy games and block-building games! There's a zone for it, want to see?"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "fort-village"
+        }
+      }
+    },
+    {
+      "id": "hobby-mc",
+      "patterns": {
+        "id": [
+          "mc dan pemateri",
+          "hobi mc"
+        ],
+        "en": [
+          "mc and speaker",
+          "mc hobby"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka MC dan pemateri! Ada zonanya juga, mau lihat?",
+        "en": "Aril loves MC and speaker! There's a zone for it, want to see?"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "mc-stage"
+        }
+      }
+    },
+    {
+      "id": "hobbies",
+      "patterns": {
+        "id": [
+          "hobi",
+          "kegemaran",
+          "waktu luang"
+        ],
+        "en": [
+          "hobbies",
+          "free time",
+          "pastimes"
+        ]
+      },
+      "answer": {
+        "id": "Hobi Kak Aril: angkat beban / body building; memasak; main game strategi dan game balok; MC dan pemateri.",
+        "en": "Aril's hobbies: weightlifting / bodybuilding; cooking; strategy games and block-building games; MC and speaker."
+      }
+    },
+    {
+      "id": "food",
+      "patterns": {
+        "id": [
+          "makanan favorit",
+          "suka makan apa",
+          "makanan"
+        ],
+        "en": [
+          "favorite food",
+          "what does he eat",
+          "food"
+        ]
+      },
+      "answer": {
+        "id": "Makanan favorit Kak Aril: olahan daging (sapi, ayam, kambing), selalu halal.",
+        "en": "Aril's favorite food: meat dishes (beef, chicken, lamb), always halal."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "aril-kitchen"
+        }
+      }
+    },
+    {
+      "id": "music",
+      "patterns": {
+        "id": [
+          "musik favorit",
+          "lagu favorit",
+          "suka musik apa",
+          "penyanyi favorit"
+        ],
+        "en": [
+          "favorite music",
+          "favorite songs",
+          "music taste",
+          "favorite singer"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka musik Barat yang energik, musik Arab, DJ funkot, dan lagu-lagu Timur yang bikin joget, misalnya Adele, Rihanna dan Cash Cash. Coba ganti radio ke Funkot FM!",
+        "en": "Aril enjoys energetic Western pop, Arabic music, Indonesian funkot DJ mixes, and feel-good Eastern Indonesian songs, like Adele, Rihanna and Cash Cash. Try switching the radio to Funkot FM!"
+      },
+      "action": {
+        "tool": "play_radio",
+        "args": {
+          "stationId": "funkot"
+        }
+      }
+    },
+    {
+      "id": "games",
+      "patterns": {
+        "id": [
+          "game favorit",
+          "suka main game",
+          "game"
+        ],
+        "en": [
+          "favorite games",
+          "video games",
+          "games"
+        ]
+      },
+      "answer": {
+        "id": "Kak Aril suka game strategi membangun desa dan game dunia balok.",
+        "en": "Aril likes village-building strategy games and block-world games."
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "block-park"
+        }
+      }
+    },
+    {
+      "id": "piko",
+      "patterns": {
+        "id": [
+          "siapa piko",
+          "kamu siapa",
+          "namamu"
+        ],
+        "en": [
+          "who is piko",
+          "what is your name",
+          "who are you piko"
+        ]
+      },
+      "answer": {
+        "id": "Aku Piko, co-pilot cilik Kak Aril! Tugasku mengantar Kakak keliling portofolio ini.",
+        "en": "I'm Piko, Aril's little co-pilot! My job is to fly you around this portfolio."
+      },
+      "action": {
+        "tool": "emote",
+        "args": {
+          "type": "wave"
+        }
+      }
+    },
+    {
+      "id": "skyfolio",
+      "patterns": {
+        "id": [
+          "apa itu skyfolio",
+          "situs apa ini",
+          "website apa ini"
+        ],
+        "en": [
+          "what is skyfolio",
+          "what is this site",
+          "what is this website"
+        ]
+      },
+      "answer": {
+        "id": "SKYFOLIO adalah portofolio 3D Kak Aril. Setiap zona di Bumi menyimpan satu bagian ceritanya!",
+        "en": "SKYFOLIO is Aril's 3D portfolio. Every zone on this little Earth holds part of his story!"
+      }
+    },
+    {
+      "id": "how-fly",
+      "patterns": {
+        "id": [
+          "cara terbang",
+          "gimana terbang",
+          "kontrol",
+          "cara main"
+        ],
+        "en": [
+          "how to fly",
+          "controls",
+          "how do i play",
+          "how to steer"
+        ]
+      },
+      "answer": {
+        "id": "Tahan W atau joystick ke atas untuk melaju, lalu belok dengan A/D. Shift atau tombol Boost untuk ngebut!",
+        "en": "Hold W or push the joystick up to roll, then steer with A/D. Shift or the Boost button goes fast!"
+      }
+    },
+    {
+      "id": "how-land",
+      "patterns": {
+        "id": [
+          "cara mendarat",
+          "mendarat",
+          "turun"
+        ],
+        "en": [
+          "how to land",
+          "landing",
+          "land the plane"
+        ]
+      },
+      "answer": {
+        "id": "Turunkan hidung pelan-pelan dan kurangi kecepatan di atas landasan. Mendarat mulus dapat stempel!",
+        "en": "Lower the nose gently and slow down over a runway. Smooth landings earn a stamp!"
+      }
+    },
+    {
+      "id": "map",
+      "patterns": {
+        "id": [
+          "peta",
+          "buka peta",
+          "lihat peta"
+        ],
+        "en": [
+          "map",
+          "open map",
+          "show map"
+        ]
+      },
+      "answer": {
+        "id": "Ini petanya! Pilih tujuan lalu tekan Antar ke sini.",
+        "en": "Here's the map! Pick a destination and press Take me there."
+      },
+      "action": {
+        "tool": "show_panel",
+        "args": {
+          "panel": "map"
+        }
+      }
+    },
+    {
+      "id": "passport",
+      "patterns": {
+        "id": [
+          "paspor",
+          "stempel",
+          "koleksi stempel"
+        ],
+        "en": [
+          "passport",
+          "stamps",
+          "stamp collection"
+        ]
+      },
+      "answer": {
+        "id": "Paspor menyimpan stempel setiap zona yang Kakak kunjungi!",
+        "en": "The passport keeps a stamp for every zone you visit!"
+      },
+      "action": {
+        "tool": "show_panel",
+        "args": {
+          "panel": "passport"
+        }
+      }
+    },
+    {
+      "id": "space",
+      "patterns": {
+        "id": [
+          "ke angkasa",
+          "luar angkasa",
+          "orbit",
+          "antariksa"
+        ],
+        "en": [
+          "space",
+          "outer space",
+          "orbit"
+        ]
+      },
+      "answer": {
+        "id": "Ayo ke angkasa! Kit roket akan keluar saat kita tinggi sekali.",
+        "en": "To space we go! The rocket kit pops out when we're really high."
+      },
+      "action": {
+        "tool": "go_to_space",
+        "args": {}
+      }
+    },
+    {
+      "id": "moon",
+      "patterns": {
+        "id": [
+          "ke bulan",
+          "bulan",
+          "mendarat di bulan"
+        ],
+        "en": [
+          "moon",
+          "to the moon",
+          "land on the moon"
+        ]
+      },
+      "answer": {
+        "id": "Ke Bulan! Pegangan, Kak, ini perjalanan seru!",
+        "en": "To the Moon! Hold on, Captain, this is going to be fun!"
+      },
+      "action": {
+        "tool": "go_to_moon",
+        "args": {}
+      }
+    },
+    {
+      "id": "tour",
+      "patterns": {
+        "id": [
+          "tur",
+          "tur singkat",
+          "mode rekruter",
+          "rekruter",
+          "hrd"
+        ],
+        "en": [
+          "tour",
+          "quick tour",
+          "recruiter mode",
+          "recruiter",
+          "hiring manager"
+        ]
+      },
+      "answer": {
+        "id": "Siap! Tur 60 detik tentang Kak Aril dimulai.",
+        "en": "Ready! The 60-second tour about Aril is starting."
+      },
+      "action": {
+        "tool": "start_tour",
+        "args": {
+          "kind": "recruiter"
+        }
+      }
+    },
+    {
+      "id": "radio",
+      "patterns": {
+        "id": [
+          "radio",
+          "ganti musik",
+          "ganti lagu"
+        ],
+        "en": [
+          "radio",
+          "change music",
+          "change song"
+        ]
+      },
+      "answer": {
+        "id": "Ada Syamay FM, Funkot FM, Timur FM, Gurun FM, dan Energi FM. Piko putar Funkot FM, ya!",
+        "en": "There's Syamay FM, Funkot FM, Timur FM, Gurun FM, and Energi FM. Let's play Funkot FM!"
+      },
+      "action": {
+        "tool": "play_radio",
+        "args": {
+          "stationId": "funkot"
+        }
+      }
+    },
+    {
+      "id": "hire",
+      "patterns": {
+        "id": [
+          "rekrut",
+          "kerja sama",
+          "magang",
+          "freelance",
+          "kolaborasi"
+        ],
+        "en": [
+          "hire",
+          "work together",
+          "internship",
+          "freelance",
+          "collaborate"
+        ]
+      },
+      "answer": {
+        "id": "Untuk kerja sama, hubungi Kak Aril lewat email syahrilmaymubdi2505@gmail.com. Piko antar ke Kantor Pos, ya!",
+        "en": "To work together, email Aril at syahrilmaymubdi2505@gmail.com. Let me take you to the Post Office!"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "post-office"
+        }
+      }
+    },
+    {
+      "id": "night",
+      "patterns": {
+        "id": [
+          "jadikan malam",
+          "mode malam",
+          "malam"
+        ],
+        "en": [
+          "make it night",
+          "night mode",
+          "night"
+        ]
+      },
+      "answer": {
+        "id": "Sim salabim, malam tiba! Lihat lampu-lampu kota.",
+        "en": "Abracadabra, nighttime! Look at the city lights."
+      },
+      "action": {
+        "tool": "set_time",
+        "args": {
+          "mode": "night"
+        }
+      }
+    },
+    {
+      "id": "rain",
+      "patterns": {
+        "id": [
+          "hujan",
+          "turunkan hujan",
+          "buat hujan"
+        ],
+        "en": [
+          "make it rain",
+          "rain",
+          "rainy"
+        ]
+      },
+      "answer": {
+        "id": "Hujan turun! Kanopi kita menutup otomatis.",
+        "en": "Here comes the rain! Our canopy closes by itself."
+      },
+      "action": {
+        "tool": "set_weather",
+        "args": {
+          "kind": "rain"
+        }
+      }
+    },
+    {
+      "id": "home",
+      "patterns": {
+        "id": [
+          "pulang",
+          "ke bandara",
+          "kembali ke bandara"
+        ],
+        "en": [
+          "go home",
+          "back to the airport",
+          "return home"
+        ]
+      },
+      "answer": {
+        "id": "Pulang ke Bandara Medan!",
+        "en": "Heading home to Medan Airport!"
+      },
+      "action": {
+        "tool": "fly_to_zone",
+        "args": {
+          "zoneId": "home-airport"
+        }
+      }
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { apiPlugin } from './scripts/vite-plugin-api';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'node:path';
@@ -6,7 +7,7 @@ import { contentPlugin } from './scripts/vite-plugin-content';
 const root = import.meta.dirname;
 
 export default defineConfig(({ command }) => ({
-  plugins: [svelte(), contentPlugin()],
+  plugins: [svelte(), contentPlugin(), apiPlugin()],
   server: {
     port: 5173,
   },

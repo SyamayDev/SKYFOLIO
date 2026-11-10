@@ -8,6 +8,8 @@
   import { t } from '../i18n';
   import { actions } from './bridge';
   import PanelBts from './PanelBts.svelte';
+  import PanelChat from './PanelChat.svelte';
+  import PanelArrival from './PanelArrival.svelte';
   import PanelContact from './PanelContact.svelte';
   import PanelLink from './PanelLink.svelte';
   import PanelMap from './PanelMap.svelte';
@@ -110,6 +112,8 @@
       {:else if $panel.kind === 'contact'}<PanelContact />
       {:else if $panel.kind === 'link'}<PanelLink id={$panel.id ?? ''} data={$panel.data} onclose={close} />
       {:else if $panel.kind === 'bts'}<PanelBts />
+      {:else if $panel.kind === 'chat'}<PanelChat />
+      {:else if $panel.kind === 'arrival'}<PanelArrival />
       {/if}
     </div>
   </div>

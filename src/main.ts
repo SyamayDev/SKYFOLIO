@@ -49,11 +49,22 @@ async function start(): Promise<void> {
     click: () => exp.audio.sfx?.click(),
     requestGyro: () => exp.requestGyro(),
     addLook: (dx, dy) => exp.input.addLook(dx, dy, 'touch'),
-    flyTo: (dest) => exp.flyTo(dest),
+    flyTo: (dest, opts) => exp.flyTo(dest, opts),
+    autopilotInfo: () => ({ active: exp.autopilot.active, arrived: exp.autopilot.arrived }),
     cancelAutopilot: () => exp.cancelAutopilot(),
-    releaseLantern: () => exp.lantern.releaseLantern(),
+    releaseLantern: (text) => {
+      if (exp.social) void exp.social.postLantern(text);
+      else exp.lantern.releaseLantern();
+    },
     paperPlane: () => exp.post.launchPaperPlane(),
     hover: (on) => exp.hover(on),
+    startTour: () => void import('./ai/RecruiterTour').then((m) => m.startTour()),
+    setWeather: (kind) => {
+      exp.weather.force = kind === 'real' ? null : kind;
+    },
+    setTime: (mode) => exp.setHour(mode === 'real' ? null : mode === 'day' ? 12 : mode === 'sunset' ? 18.05 : 22),
+    emote: (type) => exp.plane.piko.emote(type),
+    cinematic: (on) => exp.rig.setCinematic(on),
   });
   if (import.meta.hot) import.meta.hot.dispose(() => exp.dispose());
 }

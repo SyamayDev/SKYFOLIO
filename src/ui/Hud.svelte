@@ -8,7 +8,7 @@
   import { actions } from './bridge';
   import { panel } from '../core/AppState';
 
-  function openPanel(kind: 'map' | 'passport'): void {
+  function openPanel(kind: 'map' | 'passport' | 'chat'): void {
     actions.click();
     panel.set({ kind });
   }
@@ -53,6 +53,7 @@
   </div>
 
   <div class="buttons">
+    <button class="round chat" onclick={() => openPanel('chat')} aria-label={$t('hud.chat')} title={$t('hud.chat')} data-testid="open-chat"><Icon name="chat" size={24} /></button>
     <button class="round" onclick={() => openPanel('map')} aria-label={$t('hud.map')} title={$t('hud.map')} data-testid="open-map"><Icon name="map" size={24} /></button>
     <button class="round" onclick={() => openPanel('passport')} aria-label={$t('hud.passport')} title={$t('hud.passport')} data-testid="open-passport"><Icon name="passport" size={24} /></button>
     <button class="round" onclick={toggleCamera} aria-label={$t('hud.camera')} title={$t('hud.camera')}><Icon name="camera" size={24} /></button>
@@ -93,7 +94,8 @@
     position: absolute;
     top: calc(10px + var(--safe-top));
     left: 50%;
-    width: min(340px, 52vw);
+    /* Selalu menyisakan ruang untuk radar (kiri) dan 5 tombol (kanan). */
+    width: max(160px, min(340px, calc(100vw - 640px)));
     height: 38px;
     transform: translateX(-50%);
     background: var(--panel);
@@ -280,6 +282,13 @@
   @keyframes lines {
     to {
       transform: rotate(7deg);
+    }
+  }
+  /* Tablet/jendela sempit (tidak pendek): kompas turun ke baris kedua. */
+  @media (max-width: 900px) and (min-height: 561px) {
+    .compass {
+      top: calc(66px + var(--safe-top));
+      width: min(320px, calc(100vw - 236px));
     }
   }
   /* HP portrait: tombol di baris atas (lebih kecil), kompas di baris kedua di kanan radar. */

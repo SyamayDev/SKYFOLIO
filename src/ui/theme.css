@@ -24,8 +24,8 @@
   /* Awal tumpukan tengah-atas (di bawah kompas). */
   --stack-top: calc(56px + var(--safe-top));
 }
-/* HP portrait: tombol di baris atas, kompas turun ke baris kedua. */
-@media (max-width: 560px) {
+/* Tablet/HP portrait: tombol di baris atas, kompas turun ke baris kedua. */
+@media (max-width: 900px) and (min-height: 561px) {
   :root {
     --stack-top: calc(122px + var(--safe-top));
   }

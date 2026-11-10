@@ -1,6 +1,7 @@
 <script lang="ts">
   /** Isi panel per zona (docs/07 bagian 4). Semua fakta dari content/. */
   import Icon from './Icon.svelte';
+  import { leaderboard } from '../game/Social';
   import { content, L, skillName, secretMessage } from '../content';
   import { panel } from '../core/AppState';
   import { progress } from '../game/Progress';
@@ -136,6 +137,12 @@
 {:else if id === 'sky-circuit'}
   <p class="p-text">{$t('panels.circuit.intro')}</p>
   <p class="p-card p-icon"><Icon name="trophy" size={18} /> {$t('panels.circuit.best')}: <b>{fmt($circuit.best)}</b></p>
+  <h3 class="p-section">{$t('panels.circuit.top')}</h3>
+  {#if $leaderboard.top.length}
+    <ol class="p-list board">{#each $leaderboard.top as r, i (i)}<li class="p-card"><b>{i + 1}.</b> {r.name} <span class="p-muted">· {fmt(r.time)}</span></li>{/each}</ol>
+  {:else}
+    <p class="p-muted">{$leaderboard.offline ? $t('panels.circuit.offline') : $t('panels.circuit.empty')}</p>
+  {/if}
 {:else if id === 'orbit'}
   {#if c.certificates.items.length}
     <ul class="p-list">{#each c.certificates.items as ct (ct.id)}<li class="p-card"><b>{L(ct.title as never, $locale) || String(ct.title)}</b><div class="p-muted">{ct.issuer ?? ''} {ct.date ?? ''}</div></li>{/each}</ul>
