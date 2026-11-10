@@ -32,10 +32,12 @@ export interface ChibiStyle {
   cuffs?: [string, string];
 }
 
+const NO_SHADOW = new Set(['eye', 'brow', 'mouth', 'piko-details', 'stars', 'goggles', 'scarf']);
+
 export function mesh(geo: BufferGeometry, mat: Material, name: string): Mesh {
   const m = new Mesh(geo, mat);
   m.name = name;
-  m.castShadow = true;
+  m.castShadow = !NO_SHADOW.has(name);
   return m;
 }
 

@@ -202,6 +202,64 @@ export class Planet {
     }
   }
 
+  // ------------------------------------------------------------------ kueri tinggi medan (CPU)
+
+  private cellStart: Int32Array | null = null;
+  private cellTris: Int32Array | null = null;
+
+  private buildCellIndex(): void {
+    const n = this.triangleCount;
+    const tp = this.triPos;
+    const ids = new Int32Array(n);
+    const counts = new Int32Array(180 * 360);
+    for (let t = 0; t < n; t++) {
+      const o = t * 9;
+      const x = tp[o]! + tp[o + 3]! + tp[o + 6]!;
+      const y = tp[o + 1]! + tp[o + 4]! + tp[o + 7]!;
+      const z = tp[o + 2]! + tp[o + 5]! + tp[o + 8]!;
+      const len = Math.hypot(x, y, z) || 1;
+      const c = cellIndex((Math.asin(y / len) * 180) / Math.PI, (Math.atan2(x, z) * 180) / Math.PI);
+      ids[t] = c;
+      counts[c]!++;
+    }
+    const start = new Int32Array(180 * 360 + 1);
+    for (let c = 0; c < 180 * 360; c++) start[c + 1] = start[c]! + counts[c]!;
+    const tris = new Int32Array(n);
+    const fill = start.slice(0, 180 * 360);
+    for (let t = 0; t < n; t++) tris[fill[ids[t]!]!++] = t;
+    this.cellStart = start;
+    this.cellTris = tris;
+  }
+
+  /**
+   * Tinggi permukaan daratan (di atas laut) di bawah arah satuan `dir`, dihitung langsung dari segitiga
+   * (tidak bergantung collider yang mungkin nonaktif). Laut / tidak ada daratan → `seaValue`.
+   */
+  heightAt(dir: Vector3, seaValue = 0): number {
+    if (!this.cellStart) this.buildCellIndex();
+    const start = this.cellStart!;
+    const tris = this.cellTris!;
+    const len = dir.length() || 1;
+    const dx = dir.x / len;
+    const dy = dir.y / len;
+    const dz = dir.z / len;
+    const lat = (Math.asin(Math.max(-1, Math.min(1, dy))) * 180) / Math.PI;
+    const lon = (Math.atan2(dx, dz) * 180) / Math.PI;
+    const tp = this.triPos;
+    let best = -1;
+    for (let a = -1; a <= 1; a++) {
+      for (let b = -1; b <= 1; b++) {
+        const c = cellIndex(lat + a, lon + b);
+        for (let i = start[c]!; i < start[c + 1]!; i++) {
+          const o = tris[i]! * 9;
+          const t = rayTriFromCenter(dx, dy, dz, tp, o);
+          if (t > 0 && t > best) best = t;
+        }
+      }
+    }
+    return best > 0 ? best - PLANET_RADIUS : seaValue;
+  }
+
   dispose(): void {
     for (const c of this.chunks) {
       c.mesh.geometry.dispose();
@@ -210,4 +268,40 @@ export class Planet {
     if (this.seaFloor) this.physics.removeCollider(this.seaFloor);
     this.chunks.length = 0;
   }
+}
+
+function cellIndex(lat: number, lon: number): number {
+  const la = Math.min(179, Math.max(0, Math.floor(lat + 90)));
+  const lo = ((Math.floor(lon + 180) % 360) + 360) % 360;
+  return la * 360 + lo;
+}
+
+/** Möller–Trumbore dari pusat planet sepanjang arah satuan d; mengembalikan jarak t (≤ 0 = tidak kena). */
+function rayTriFromCenter(dx: number, dy: number, dz: number, p: Float32Array, o: number): number {
+  const ax = p[o]!;
+  const ay = p[o + 1]!;
+  const az = p[o + 2]!;
+  const e1x = p[o + 3]! - ax;
+  const e1y = p[o + 4]! - ay;
+  const e1z = p[o + 5]! - az;
+  const e2x = p[o + 6]! - ax;
+  const e2y = p[o + 7]! - ay;
+  const e2z = p[o + 8]! - az;
+  const px = dy * e2z - dz * e2y;
+  const py = dz * e2x - dx * e2z;
+  const pz = dx * e2y - dy * e2x;
+  const det = e1x * px + e1y * py + e1z * pz;
+  if (Math.abs(det) < 1e-12) return -1;
+  const inv = 1 / det;
+  const tx = -ax;
+  const ty = -ay;
+  const tz = -az;
+  const u = (tx * px + ty * py + tz * pz) * inv;
+  if (u < -1e-6 || u > 1 + 1e-6) return -1;
+  const qx = ty * e1z - tz * e1y;
+  const qy = tz * e1x - tx * e1z;
+  const qz = tx * e1y - ty * e1x;
+  const v = (dx * qx + dy * qy + dz * qz) * inv;
+  if (v < -1e-6 || u + v > 1 + 1e-6) return -1;
+  return (e2x * qx + e2y * qy + e2z * qz) * inv;
 }

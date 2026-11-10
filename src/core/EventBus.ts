@@ -34,7 +34,33 @@ export interface GameEvents {
   'camera:mode': { mode: 'chase' | 'cockpit' };
   'ui:pause': { paused: boolean };
   'toast': { text: string; kind?: 'info' | 'success' | 'warn'; icon?: string };
+  'zone:enter': { id: string; first: boolean };
+  'zone:exit': { id: string };
+  'stamp': { id: string; kind: 'zone' | 'landmark' | 'project' };
+  'landmark:visit': { id: string; first: boolean };
+  'project:land': { id: string };
+  'project:open': { id: string };
+  'panel:open': { kind: PanelKind; id?: string };
+  'piko:say': { text: string; mood?: 'happy' | 'wow' | 'think' | 'sleepy' | 'cheer'; priority?: number };
+  'interact': { zone: string; action: string };
+  'balloon:hit': { linkId: string };
+  'parcel:delivered': Record<string, never>;
+  'achievement': { id: string };
+  'autopilot': { active: boolean; target?: string };
 }
+
+export type PanelKind =
+  | 'zone'
+  | 'project'
+  | 'passport'
+  | 'map'
+  | 'contact'
+  | 'link'
+  | 'bts'
+  | 'settings'
+  | 'chat'
+  | 'arrival'
+  | 'photo';
 
 export type PreflightItemId = 'fuel' | 'propeller' | 'map' | 'radio' | 'copilot' | 'weather';
 

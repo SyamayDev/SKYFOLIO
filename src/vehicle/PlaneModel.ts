@@ -446,7 +446,7 @@ export class PlaneModel {
     this.propeller.rotation.x = propBent * Math.sin(time * 40) * 0.25;
     const blur = Math.min(1, Math.max(0, (Math.abs(propRate) - 18) / 40));
     const bm = this.blurDisc.material as MeshBasicNodeMaterial;
-    bm.opacity = blur * 0.3;
+    bm.opacity = blur * 0.13;
     this.blurDisc.visible = blur > 0.01;
     this.propeller.visible = blur < 0.97 || Math.floor(time * 60) % 3 === 0;
 

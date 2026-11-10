@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appPhase, fade, fatalError, inputDevice, isPortrait, paused } from '../core/AppState';
+  import { appPhase, fade, fadeColor, fatalError, inputDevice, isPortrait, paused } from '../core/AppState';
   import { t } from '../i18n';
   import Hud from './Hud.svelte';
   import Pause from './Pause.svelte';
@@ -33,7 +33,7 @@
   {/if}
 {/if}
 
-<div class="fade" style:opacity={$fade} aria-hidden="true"></div>
+<div class="fade" style:opacity={$fade} style:background={$fadeColor} aria-hidden="true"></div>
 
 <style>
   .fade {

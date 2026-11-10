@@ -28,8 +28,26 @@ import { Planet } from '../world/Planet';
 import { Sky } from '../world/Sky';
 import { manualDate, sunDirection } from '../world/Sun';
 import { HomeAirport } from '../world/Zones/HomeAirport';
+import { AmbientLife } from '../world/AmbientLife';
+import { WorldLandmarks } from '../world/Landmarks/WorldLandmarks';
+import { ContributionCity } from '../world/Zones/ContributionCity';
+import { ControlTower } from '../world/Zones/ControlTower';
+import { ArilKitchen, BlockPark, FortVillage, GymIsland, McStage } from '../world/Zones/EasterEggs';
+import { HangarLab } from '../world/Zones/HangarLab';
+import { HomeAirportZone } from '../world/Zones/HomeAirportZone';
+import { JourneyStream } from '../world/Zones/JourneyStream';
+import { LanternValley } from '../world/Zones/LanternValley';
+import { PostOffice } from '../world/Zones/PostOffice';
+import { ProjectArchipelago } from '../world/Zones/ProjectArchipelago';
+import { SkillPeaks } from '../world/Zones/SkillPeaks';
+import { SkyCircuit } from '../world/Zones/SkyCircuit';
+import { MoonZone, OrbitZone } from '../world/Zones/Space';
+import type { ZoneTick } from '../world/Zones/Zone';
+import { ZoneManager, horizonVisible } from '../world/Zones/ZoneManager';
+import { detailCuller } from '../world/DetailCuller';
+import type { ZoneDeps } from '../world/Zones/ZoneKit';
 import { TutorialController } from '../ui/tutorial';
-import { appPhase, fade, hud, isPortrait, paused, preflight } from './AppState';
+import { appPhase, fade, fadeColor, hud, isPortrait, paused, preflight } from './AppState';
 import { assetUrl, loadEarthAssets } from './Assets';
 import { createDebugPanel, isDebugEnabled } from './Debug';
 import { bus, type PreflightItemId } from './EventBus';
@@ -72,6 +90,31 @@ export class Experience {
   cities!: Cities;
   airport!: HomeAirport;
   plane!: Plane;
+  zones!: ZoneManager;
+  landmarks!: WorldLandmarks;
+  life!: AmbientLife;
+  archipelago!: ProjectArchipelago;
+  journey!: JourneyStream;
+  moon!: MoonZone;
+  lantern!: LanternValley;
+  post!: PostOffice;
+  lab!: HangarLab;
+  airportZone!: HomeAirportZone;
+  private zoneDeps!: ZoneDeps;
+  private readonly zoneTick: ZoneTick = {
+    dt: 0,
+    time: 0,
+    planePos: new Vector3(),
+    planeVel: new Vector3(),
+    agl: 0,
+    grounded: true,
+    night: false,
+    wind: new Vector3(),
+    camPos: new Vector3(),
+    sunDir: new Vector3(),
+  };
+  private readonly assistImpulse = new Vector3();
+  private moonTimer = 0;
   particles!: Particles;
   feedback!: Feedback;
   tutorial!: TutorialController;
@@ -156,11 +199,12 @@ export class Experience {
     this.planet.updateColliders(airportCenter);
     this.airport = new HomeAirport(this.physics, this.gravity, propMat, (dir) => this.groundHeight(dir));
     this.scene.add(this.airport.group);
+    detailCuller.add(this.airport.group, 160, 3);
     this.planet.updateColliders(this.airport.spawnPoint().position);
     this.physics.world.step(this.physics.events); // bangun BVH collider
 
     // Pesawat + karakter.
-    this.plane = new Plane(this.physics, this.gravity, propMat, () => this.airport.spawnPoint());
+    this.plane = new Plane(this.physics, this.gravity, propMat, () => this.archipelago?.spawnNear(this.plane.position) ?? this.airport.spawnPoint());
     this.scene.add(this.plane.model.root);
     this.plane.ground.materialAt = (c, f) => this.planet.materialAt(c, f);
     this.plane.headingHint = (pos, fwd, out) => this.airport.runwayHeading(pos, fwd, out);
@@ -169,6 +213,43 @@ export class Experience {
     markLoaded('copilot');
 
     this.particles = new Particles(this.scene, 480, preset.particles);
+
+    // Zona, landmark, dan kehidupan latar (isi berat dibangun malas saat mendekat).
+    this.zoneDeps = { physics: this.physics, gravity: this.gravity, planet: this.planet, scatter: this.scatter, material: propMat, particles: this.particles };
+    this.zones = new ZoneManager(this.scene, this.zoneDeps);
+    this.airportZone = new HomeAirportZone();
+    this.archipelago = new ProjectArchipelago();
+    this.journey = new JourneyStream();
+    this.moon = new MoonZone();
+    this.lantern = new LanternValley();
+    this.post = new PostOffice();
+    this.lab = new HangarLab();
+    for (const z of [
+      this.airportZone,
+      new ControlTower(),
+      this.post,
+      this.lantern,
+      this.archipelago,
+      new SkillPeaks(),
+      this.journey,
+      new ContributionCity(),
+      this.lab,
+      new McStage(),
+      new ArilKitchen(),
+      new GymIsland(),
+      new FortVillage(),
+      new BlockPark(),
+      new SkyCircuit(),
+      new OrbitZone(),
+      this.moon,
+    ]) {
+      this.zones.add(z);
+    }
+    this.moon.ensureBuilt(this.zoneDeps);
+    this.moon.place(this.sky.sunDir, new Date(), this.plane.position, true);
+    this.landmarks = new WorldLandmarks(this.zoneDeps);
+    this.scene.add(this.landmarks.group);
+    this.life = new AmbientLife(this.scene, this.planet, this.physics, this.particles, propMat, this.quality.tier);
     this.rig = new CameraRig(window.innerWidth / Math.max(1, window.innerHeight), this.physics);
     this.scene.add(this.rig.camera);
     this.input = new Input(this.canvas);
@@ -186,6 +267,9 @@ export class Experience {
     this.unsubs.push(() => window.removeEventListener('resize', this.onResize));
     this.unsubs.push(
       bus.on('quality:changed', () => this.applyQuality()),
+      bus.on('interact', (e) => {
+        if (e.action === 'crater-dive') this.craterDive();
+      }),
       bus.on('input:device', (e) => this.airport.setDevice(e.device)),
       settings.subscribe((st) => this.rig.setMode(st.camera.mode === 'cockpit' ? 'cockpit' : 'chase')),
       paused.subscribe((p) => {
@@ -243,6 +327,12 @@ export class Experience {
     this.sky.setShadow(p.shadowMapSize, p.shadowRange);
     this.planet.setMaterial(this.terrainMaterial());
     this.scatter.setTier(this.quality.tier);
+    this.life?.setTier(this.quality.tier);
+    detailCuller.scale = { low: 0.32, medium: 0.6, high: 1, ultra: 1.3 }[this.quality.tier];
+    if (this.zones) {
+      this.zones.markerRange = this.quality.tier === 'low' ? 650 : 1400;
+      this.zones.maxMarkers = this.quality.tier === 'low' ? 5 : this.quality.tier === 'medium' ? 9 : 17;
+    }
     this.clouds.setTier(this.quality.tier);
     this.cities.setFraction(p.buildings);
     this.particles.setCapacity(p.particles);
@@ -332,6 +422,7 @@ export class Experience {
           this.updateCameraTarget();
           this.rig.snap(this.camTarget);
           fade.set(0);
+          fadeColor.set('#FFF6E6');
           this.respawnTimer = -1;
         }
       }
@@ -341,6 +432,7 @@ export class Experience {
       const pos = this.plane.position;
       this.planet.updateColliders(pos);
       this.airport.update(dt, this.time.elapsed, pos, this.wind, night);
+      this.updateWorldSystems(dt, night);
       if (this.boarded && this.plane.env.heightAboveGround < 6) {
         const hit = this.scatter.checkBrush(pos, this.time.elapsed, this.treeHit);
         if (hit) {
@@ -414,6 +506,43 @@ export class Experience {
     this.input.endFrame();
   }
 
+  /** Zona, landmark, kehidupan latar, bantuan Arus Perjalanan, aksi kontekstual. */
+  private updateWorldSystems(dt: number, night: boolean): void {
+    const t = this.zoneTick;
+    t.dt = dt;
+    t.time = this.time.elapsed;
+    t.planePos.copy(this.plane.position);
+    this.plane.velocity(t.planeVel);
+    t.agl = this.plane.env.heightAboveGround;
+    t.grounded = this.plane.ground.grounded;
+    t.night = night;
+    t.wind.copy(this.wind);
+    t.camPos.copy(this.rig.camera.position);
+    t.sunDir.copy(this.sky.sunDir);
+    _v.set(0, 0, -1).applyQuaternion(this.plane.quaternion);
+    this.zones.update(t, _v);
+    this.airport.group.visible = horizonVisible(t.camPos, this.airportZone.center, 22);
+    this.landmarks.update(dt, t.planePos);
+    detailCuller.update(dt, t.camPos);
+    this.life.enabled = settings.get().world.ambientLife;
+    this.life.update(dt, t.time, t.camPos, t.planePos, night, this.sky.sunElevation);
+    // Angin buritan Arus Perjalanan (gaya fisika sungguhan, bisa dilawan).
+    if (this.boarded && this.journey.assist(t.planePos, t.planeVel, dt, this.plane.body.mass(), this.assistImpulse)) {
+      const i = this.assistImpulse;
+      this.plane.body.applyImpulse({ x: i.x, y: i.y, z: i.z }, true);
+    }
+    this.moonTimer += dt;
+    if (this.moonTimer > 5) {
+      this.moonTimer = 0;
+      this.moon.place(this.sky.sunDir, new Date(), t.planePos);
+    }
+    // Tombol Aksi kontekstual.
+    const act = this.zones.action(t);
+    const label = act?.label ?? null;
+    if (hud.get().action !== label) hud.patch({ action: label });
+    if (act && this.boarded && !paused.get() && this.input.wasPressed('interact')) act.run();
+  }
+
   private pushHud(): void {
     const st = this.plane.flight.state;
     const info = this.renderer.info;
@@ -450,6 +579,14 @@ export class Experience {
     const res = await Input.requestGyroPermission();
     if (res === 'granted') this.input.recalibrateGyro();
     return res;
+  }
+
+  /** Terjun ke Kawah Nekat: layar memutih, lalu muncul lagi di bandara. */
+  private craterDive(): void {
+    if (this.respawnTimer >= 0) return;
+    fadeColor.set('#FFFFFF');
+    this.respawnTimer = 0;
+    fade.set(1);
   }
 
   requestRespawn(): void {
@@ -513,6 +650,19 @@ export class Experience {
         this.simFrozen = on;
       },
       respawn: () => this.plane.respawn('manual'),
+      drawStats: () => {
+        // Jumlah mesh terlihat per kelompok teratas (debug draw call).
+        const out: Record<string, number> = {};
+        for (const top of this.scene.children) {
+          let n = 0;
+          top.traverseVisible((o) => {
+            if ((o as unknown as { isMesh?: boolean; isSprite?: boolean }).isMesh || (o as unknown as { isSprite?: boolean }).isSprite) n++;
+          });
+          const key = top.name || top.type;
+          out[key] = (out[key] ?? 0) + n;
+        }
+        return out;
+      },
       zoom: (scale: number) => {
         this.rig.distanceScale = scale;
       },
@@ -530,6 +680,8 @@ export class Experience {
     this.audio.dispose();
     this.plane.dispose();
     this.airport.dispose();
+    this.zones.dispose();
+    this.life.dispose();
     this.particles.dispose();
     this.scatter.dispose();
     this.rivers.dispose();
