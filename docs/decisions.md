@@ -73,3 +73,17 @@ Claude Code mencatat setiap keputusan penting yang tidak tertulis di dokumen lai
 | Pesawat bawaan | Mengikuti **gambar referensi Aril** (`docs/references/image.png`): pesawat mainan **bersayap rendah (monoplane)** bergaya gemuk, badan krem, cowling merah + mesin radial, spinner krom, baling-baling biru muda, garis toska, ujung sayap/sirip merah, roundel, paku keling. Nama tetap PK-ARL; biplane klasik bisa kembali sebagai skin di Fase 4 | Aril: "rencananya mau dia tuh kaya" gambar itu | Biplane kuning-biru Fase 0 |
 | Roundel | Bintang **kuning** (`sun`) di cakram toska bercincin merah | Bintang merah di gambar referensi bisa dibaca sebagai simbol politik; kuning tetap ceria dan sesuai palet | Bintang merah |
 | Aril | Helm kulit toska ber-earcup, kacamata terbang besar di dahi, jaket kulit cokelat bermanset kuning-merah, mata besar berkilau, pipi merona; rambut tetap gelap; syal tetap ada (docs/04) | Gambar referensi + deskripsi avatar di content/profile.json | Seragam & topi pilot biru |
+
+### Fase 1: dunia penuh isi — 2026-11-10
+
+| Topik | Keputusan | Alasan | Alternatif yang ditolak |
+| --- | --- | --- | --- |
+| Letak Kantor Pos Udara | Pulau pos sendiri (radius 18) **40 unit di sisi laut kiri landasan** (`content/world/zones.json`: 10,03°LU 102,74°BT), pintu menghadap landasan | Koordinat Medan asli jatuh tepat di landasan bandara reklamasi; pesawat menabrak gedung pos saat lepas landas. Dari titik start pulau dan balon sosial medianya langsung terlihat | Gedung pos di daratan Sumatra (medan terlalu terpotong-potong) |
+| Letak Menara Kontrol | Digeser ke samping ujung landasan (side 10,5 unit dari garis tengah) | Jalur naik pesawat yang sedikit berbelok ke kanan sempat menabrak menara | Menara di apron (terlalu sesak) |
+| Uji tata letak | `tests/unit/layout.test.ts` memastikan tidak ada zona berbangunan di koridor landasan + jalur naik | Mencegah bug serupa saat Aril/Claude menambah zona | — |
+| Autopilot | Mengendalikan **sudut miring** (maks ±34°), bukan laju roll; tidak berbelok di bawah 6 unit di atas tanah; terbang jelajah 34 unit di atas permukaan bila tujuan > 160 unit; setelah tiba **terus mengitari** sampai pemain memegang kemudi | Versi awal berguling terus di FPS rendah lalu jatuh ke laut, dan berhenti begitu tiba | Memindahkan posisi pesawat langsung (melanggar "fisika dulu") |
+| Nama landmark | Dua bahasa (`{ id, en }`) di `content/world/landmarks.json` | Paspor dan peta tampil Inggris saat bahasa EN | Kunci i18n per landmark |
+| Subtitle Piko | Ucapan Piko tampil di gelembung; subtitle yang sama disembunyikan secara visual (tetap dibaca pembaca layar) | Teks dobel memenuhi layar HP | — |
+| Hangar | Svelte di `/hangar/` (dev saja). Form generik yang membaca bentuk JSON apa pun (teks dua bahasa, slider level, daftar), editor proyek (frontmatter + cerita), seret-lepas foto, daftar konfirmasi, draf GitHub, diff + Simpan & Publikasikan | Semua file konten bisa diedit tanpa form khusus per file, jadi tetap jalan kalau skema bertambah | Form manual per file |
+| Keamanan Hangar | Selain loopback: Host & Origin wajib localhost, permintaan pengubah wajib header `X-Hangar: 1` | Situs lain yang dibuka di browser yang sama bisa mengirim POST ke localhost (CSRF) atau memakai DNS rebinding | Hanya cek alamat loopback |
+| Pratinjau Hangar | `/?fly=project:<id>` → setelah naik pesawat, autopilot langsung mengantar ke pulau itu | Aril bisa melihat hasil edit tanpa mencari pulaunya | — |

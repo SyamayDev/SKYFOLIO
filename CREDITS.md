@@ -30,3 +30,7 @@ Claude Code wajib memperbarui file ini setiap kali menambah library, data, font,
 | pdfjs-dist | Alat build | mozilla.github.io/pdf.js | Apache-2.0 | Thumbnail sertifikat (Fase 1) |
 
 Catatan: GSAP sengaja tidak dipakai karena lisensinya ("Standard no-charge") tidak termasuk daftar lisensi yang diizinkan. Semua model 3D, tekstur, dan bunyi di Fase 0 dibuat sendiri lewat kode (tanpa aset pihak ketiga).
+
+| Data repo publik GitHub SyamayDev | Data | api.github.com (repo milik Aril sendiri) | Milik Aril | Draf proyek dan skill hasil `npm run sync:github` |
+| Parser YAML & markdown mini | Kode sendiri | `src/content/yaml.ts`, `src/content/markdown.ts` | — | `js-yaml` tidak dipakai karena dependensinya (argparse) berlisensi Python-2.0, di luar daftar lisensi yang diizinkan |
+| Web3Forms | Layanan | web3forms.com (tier gratis) | Ketentuan Web3Forms | Form kontak (opsional; tanpa key memakai `mailto:`) |

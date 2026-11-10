@@ -49,6 +49,27 @@ function isLoopback(req: IncomingMessage): boolean {
   return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1';
 }
 
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+
+/**
+ * Tolak permintaan dari situs lain yang dibuka di browser yang sama (CSRF) dan DNS rebinding:
+ * Host wajib localhost, Origin (bila ada) wajib localhost, dan permintaan yang mengubah file wajib membawa
+ * header `X-Hangar: 1` — header khusus memicu preflight CORS yang tidak pernah kita setujui.
+ */
+function isTrusted(req: IncomingMessage): boolean {
+  if (!LOCAL_HOST.test(req.headers.host ?? '')) return false;
+  const origin = req.headers.origin;
+  if (origin) {
+    try {
+      if (!LOCAL_HOST.test(new URL(origin).host)) return false;
+    } catch {
+      return false;
+    }
+  }
+  if (req.method !== 'GET' && req.headers['x-hangar'] !== '1') return false;
+  return true;
+}
+
 async function git(args: string[]): Promise<string> {
   const { stdout, stderr } = await run('git', args, { cwd: ROOT, maxBuffer: 8 * 1024 * 1024 });
   return `${stdout}${stderr}`;
@@ -56,7 +77,7 @@ async function git(args: string[]): Promise<string> {
 
 export function hangarMiddleware(_server: () => ViteDevServer | null) {
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
-    if (!isLoopback(req)) return send(res, 403, { error: 'Hangar hanya bisa dibuka dari komputer ini.' });
+    if (!isLoopback(req) || !isTrusted(req)) return send(res, 403, { error: 'Hangar hanya bisa dibuka dari komputer ini.' });
     const url = new URL(req.url ?? '/', 'http://local');
     try {
       if (req.method === 'GET' && url.pathname === '/content') {

@@ -369,6 +369,9 @@ export class Experience {
       this.plane.engineRunning = true;
     }, 450);
     appPhase.set('flying');
+    // Pratinjau dari Hangar: /?fly=project:<id> → langsung diantar autopilot setelah naik.
+    const fly = new URLSearchParams(location.search).get('fly');
+    if (fly && /^[a-z]+(:[a-z0-9-]+)?$/i.test(fly)) setTimeout(() => this.flyTo(fly), 900);
   }
 
   start(): void {

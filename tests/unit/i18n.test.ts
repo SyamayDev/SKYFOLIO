@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { id } from '../../src/i18n/id';
 import { en } from '../../src/i18n/en';
@@ -27,5 +29,22 @@ describe('i18n', () => {
       const ph = (s: string): string[] => (s.match(/\{\w+\}/g) ?? []).sort();
       expect(ph(get(en)), k).toEqual(ph(get(id)));
     }
+  });
+
+  it('semua kunci yang dipakai kode ada di kamus', () => {
+    const walk = (d: string): string[] =>
+      readdirSync(d).flatMap((n) => {
+        const p = join(d, n);
+        return statSync(p).isDirectory() ? walk(p) : /\.(ts|svelte)$/.test(n) ? [p] : [];
+      });
+    const used = new Set<string>();
+    for (const f of walk(resolve(import.meta.dirname, '../../src'))) {
+      const src = readFileSync(f, 'utf8');
+      for (const m of src.matchAll(/(?:\$t|\btr|\bt)\(\s*'([a-zA-Z0-9.-]+)'/g)) used.add(m[1]!);
+      for (const m of src.matchAll(/label: '([a-z]+\.[a-zA-Z0-9.-]+)'/g)) used.add(m[1]!);
+    }
+    const has = (k: string): boolean => typeof k.split('.').reduce<unknown>((o, p) => (o as Record<string, unknown> | undefined)?.[p], id) === 'string';
+    const missing = [...used].filter((k) => k.includes('.') && !has(k));
+    expect(missing).toEqual([]);
   });
 });
