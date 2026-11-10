@@ -10,7 +10,6 @@ export interface QualityPreset {
   /** 0 = mati (pakai bayangan gumpal/blob). */
   shadowMapSize: number;
   shadowRange: number;
-  trees: number;
   buildings: number;
   particles: number;
   oceanDetail: number;
@@ -23,7 +22,6 @@ export const QUALITY: Record<QualityTier, QualityPreset> = {
     pixelRatio: 1,
     shadowMapSize: 0,
     shadowRange: 0,
-    trees: 1500,
     buildings: 0.5,
     particles: 120,
     oceanDetail: 4,
@@ -33,7 +31,6 @@ export const QUALITY: Record<QualityTier, QualityPreset> = {
     pixelRatio: 1.5,
     shadowMapSize: 1024,
     shadowRange: 22,
-    trees: 3000,
     buildings: 0.8,
     particles: 200,
     oceanDetail: 5,
@@ -43,7 +40,6 @@ export const QUALITY: Record<QualityTier, QualityPreset> = {
     pixelRatio: 2,
     shadowMapSize: 2048,
     shadowRange: 34,
-    trees: 6000,
     buildings: 1,
     particles: 320,
     oceanDetail: 5,
@@ -53,7 +49,6 @@ export const QUALITY: Record<QualityTier, QualityPreset> = {
     pixelRatio: 2,
     shadowMapSize: 2048,
     shadowRange: 50,
-    trees: 9000,
     buildings: 1,
     particles: 420,
     oceanDetail: 6,

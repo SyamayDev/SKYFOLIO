@@ -52,6 +52,15 @@ export function createToonMaterial(opts: ToonOptions = {}): MeshToonNodeMaterial
   return m;
 }
 
+/**
+ * Aktifkan flat shading (normal dari turunan posisi di fragment shader). Tipe MeshToonMaterial tidak
+ * punya properti ini, tetapi NodeBuilder three memeriksanya di semua material node.
+ */
+export function setFlatShading<T extends object>(m: T): T {
+  (m as unknown as { flatShading: boolean }).flatShading = true;
+  return m;
+}
+
 /** Material tanpa cahaya (lampu, panel bercahaya). */
 export function createUnlitMaterial(hex: string, opts: { transparent?: boolean; opacity?: number } = {}): MeshBasicNodeMaterial {
   const m = new MeshBasicNodeMaterial({ color: new Color(hex) });

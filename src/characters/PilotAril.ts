@@ -1,13 +1,14 @@
 /**
- * Avatar Aril (pilot) versi awal: chibi berseragam pilot, topi berlencana sayap, kacamata terbang di dahi,
- * syal yang berkibar mengikuti kecepatan (rantai pegas sederhana).
+ * Avatar Aril (pilot), mengikuti gambar referensi Aril (docs/references/image.png): chibi berhelm kulit
+ * toska dengan earcup, kacamata terbang besar di dahi, jaket kulit cokelat bermanset kuning-merah,
+ * plus syal yang berkibar mengikuti kecepatan (rantai pegas sederhana, docs/04 bagian 3.2).
  */
 import { Group, type Material } from 'three';
 import { EXTRA, PALETTE } from '../config/palette';
-import { Kit, rbox, torus } from '../utils/modeling/Kit';
+import { Kit, rbox } from '../utils/modeling/Kit';
 import { clamp, damp } from '../utils/math';
 import { wobble } from '../utils/noise';
-import { buildChibi, mesh, pilotHat, type ChibiParts } from './Chibi';
+import { aviatorHelmet, buildChibi, mesh, type ChibiParts } from './Chibi';
 
 const SCARF_SEGMENTS = 5;
 const SEG_LEN = 0.13;
@@ -37,20 +38,19 @@ export class PilotAril {
 
   constructor(mat: Material) {
     const r = 0.25;
-    this.parts = buildChibi({ headRadius: r, uniform: '#2E4A7D', uniformTrim: PALETTE.sun, hair: EXTRA.hair, material: mat });
+    this.parts = buildChibi({
+      headRadius: r,
+      uniform: '#9A5B34',
+      uniformTrim: '#7A4A2E',
+      hair: EXTRA.hair,
+      material: mat,
+      iris: '#6B3E22',
+      collar: '#5E3A26',
+      cuffs: [PALETTE.sun, '#E5484D'],
+    });
     this.root = this.parts.root;
     this.root.name = 'pilot-aril';
-    const hat = pilotHat(r, '#2E4A7D', mat);
-    hat.position.set(0, r * 1.62, 0.02);
-    this.parts.head.add(hat);
-    // Kacamata terbang di dahi.
-    const gk = new Kit();
-    for (const s of [-1, 1]) {
-      gk.add(torus(r * 0.2, r * 0.06, 5, 10), '#6B4A2E', { pos: [s * r * 0.26, r * 1.36, -r * 0.82], rot: [0.35, 0, 0] });
-      gk.add(torus(r * 0.13, r * 0.07, 4, 10), EXTRA.glass, { pos: [s * r * 0.26, r * 1.36, -r * 0.84], rot: [0.35, 0, 0] });
-    }
-    gk.add(rbox(r * 1.9, r * 0.09, r * 0.6, r * 0.04), '#6B4A2E', { pos: [0, r * 1.3, -r * 0.35], rot: [0.3, 0, 0] });
-    this.parts.head.add(mesh(gk.build(), mat, 'goggles'));
+    this.parts.head.add(aviatorHelmet(r, mat));
 
     // Syal (berry) — rantai segmen, dimulai dari leher bagian belakang.
     const anchor = new Group();

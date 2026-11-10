@@ -66,8 +66,11 @@ export const TOBA = {
   samosir: { lat: 2.58, lon: 98.83, semiMajorDeg: 0.38, semiMinorDeg: 0.13, height: 6.6 },
 } as const;
 
-/** Wilayah dengan jaring medan 4× lebih rapat (Sumatra Utara) supaya bandara dan Toba lebih detail. */
-export const DETAIL_REGION = { lat: 3.2, lon: 98.6, radiusDeg: 7.5, subdivisions: 4 } as const;
+/**
+ * Wilayah dengan jaring medan lebih rapat (setiap muka icosphere level 7 dibagi `subdivisions`²):
+ * seluruh Indonesia + Semenanjung Malaysia, supaya pulau-pulau tanah air dan bandara terlihat detail.
+ */
+export const DETAIL_REGION = { latMin: -11.5, latMax: 8.5, lonMin: 94, lonMax: 141.5, subdivisions: 3 } as const;
 
 /** Data biner planet dikuantisasi relatif radius ini. */
 export const EARTH_QUANT_RADIUS = PLANET_RADIUS + TERRAIN_MAX_HEIGHT + 4;

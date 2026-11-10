@@ -12,6 +12,11 @@ import { PhysicsWorld } from '../physics/PhysicsWorld';
 import { RadialGravity } from '../physics/RadialGravity';
 import { bearingDirection, headingOf, latLonToVec3 } from '../utils/geo';
 import { createToonMaterial } from '../utils/modeling/materials';
+import { Atmosphere } from '../world/Atmosphere';
+import { Clouds } from '../world/Clouds';
+import { Rivers } from '../world/Rivers';
+import { Scatter, type TreeHit } from '../world/Scatter';
+import { createTerrainMaterial, type TerrainDetail } from '../world/TerrainMaterial';
 import { quatFromUpForward } from '../utils/quat';
 import { toKmh } from '../utils/format';
 import { Feedback } from '../vehicle/CrashFeedback';
@@ -22,7 +27,6 @@ import { Particles } from '../world/Particles';
 import { Planet } from '../world/Planet';
 import { Sky } from '../world/Sky';
 import { manualDate, sunDirection } from '../world/Sun';
-import { Trees } from '../world/Trees';
 import { HomeAirport } from '../world/Zones/HomeAirport';
 import { TutorialController } from '../ui/tutorial';
 import { appPhase, fade, hud, isPortrait, paused, preflight } from './AppState';
@@ -59,7 +63,12 @@ export class Experience {
   planet!: Planet;
   ocean!: Ocean;
   sky!: Sky;
-  trees!: Trees;
+  scatter!: Scatter;
+  rivers!: Rivers;
+  clouds!: Clouds;
+  atmosphere!: Atmosphere;
+  private terrainMats = new Map<TerrainDetail, ReturnType<typeof createTerrainMaterial>>();
+  private readonly treeHit: TreeHit = { x: 0, y: 0, z: 0, scale: 1, kind: 0 };
   cities!: Cities;
   airport!: HomeAirport;
   plane!: Plane;
@@ -122,15 +131,20 @@ export class Experience {
       rendererReady,
     ]);
     const preset = this.quality.preset;
-    const terrainMat = createToonMaterial();
-    this.planet = new Planet(assets.earth, assets.meta, terrainMat, this.physics);
+    this.planet = new Planet(assets.earth, assets.meta, this.terrainMaterial(), this.physics);
     this.scene.add(this.planet.group);
+    this.rivers = new Rivers(assets.rivers, assets.meta);
+    this.scene.add(this.rivers.mesh);
     this.ocean = new Ocean(coast as Texture, preset.oceanDetail);
     this.scene.add(this.ocean.mesh);
-    this.trees = new Trees(assets.trees, assets.meta.quantRadius, preset.trees);
-    this.scene.add(this.trees.group);
+    this.scatter = new Scatter(this.planet, this.physics, this.quality.tier);
+    this.scene.add(this.scatter.group);
     this.cities = new Cities(assets.buildings, assets.meta.quantRadius, preset.buildings);
     this.scene.add(this.cities.group);
+    this.clouds = new Clouds(this.quality.tier);
+    this.scene.add(this.clouds.group);
+    this.atmosphere = new Atmosphere();
+    this.scene.add(this.atmosphere.mesh);
     this.sky = new Sky(this.scene);
     this.sky.setShadow(preset.shadowMapSize, preset.shadowRange);
     this.setHour(s.world.manualTimeOfDay ?? 10);
@@ -212,11 +226,24 @@ export class Experience {
     this.sky.setSunDirection(sunDirection(manualDate(hour)));
   }
 
+  /** Material medan sesuai tier (detail prosedural penuh kecuali tier Low). */
+  private terrainMaterial(): ReturnType<typeof createTerrainMaterial> {
+    const detail: TerrainDetail = this.quality.tier === 'low' ? 'low' : 'high';
+    let m = this.terrainMats.get(detail);
+    if (!m) {
+      m = createTerrainMaterial(detail);
+      this.terrainMats.set(detail, m);
+    }
+    return m;
+  }
+
   private applyQuality(): void {
     const p = this.quality.preset;
     this.renderer.setPixelRatioCap(p.pixelRatio);
     this.sky.setShadow(p.shadowMapSize, p.shadowRange);
-    this.trees.setLimit(p.trees);
+    this.planet.setMaterial(this.terrainMaterial());
+    this.scatter.setTier(this.quality.tier);
+    this.clouds.setTier(this.quality.tier);
     this.cities.setFraction(p.buildings);
     this.particles.setCapacity(p.particles);
     this.ocean.setDetail(p.oceanDetail);
@@ -314,9 +341,9 @@ export class Experience {
       const pos = this.plane.position;
       this.planet.updateColliders(pos);
       this.airport.update(dt, this.time.elapsed, pos, this.wind, night);
-      if (this.boarded && this.plane.altitude < 6) {
-        const hit = this.trees.checkBrush(pos, this.time.elapsed);
-        if (hit >= 0) {
+      if (this.boarded && this.plane.env.heightAboveGround < 6) {
+        const hit = this.scatter.checkBrush(pos, this.time.elapsed, this.treeHit);
+        if (hit) {
           const v = this.plane.velocity(_v);
           bus.emit('tree:brush', { point: { x: pos.x, y: pos.y, z: pos.z }, speed: v.length() });
           this.plane.body.setLinvel({ x: v.x * 0.97, y: v.y * 0.97, z: v.z * 0.97 }, true);
@@ -363,7 +390,11 @@ export class Experience {
 
     const camPos = this.rig.camera.position;
     this.planet.updateVisibility(camPos);
+    this.scatter.update(dt, this.rig.camera, this.plane.position, this.plane.env.heightAboveGround);
+    this.clouds.update(isPaused ? 0 : dt, camPos);
+    this.sky.setCloudFog(this.clouds.densityAt(camPos));
     this.sky.update(camPos, this.plane.position);
+    this.atmosphere.update(camPos, this.sky.sunDir);
     this.renderer.render(this.scene, this.rig.camera);
 
     // fps + HUD (±15 Hz)
@@ -465,7 +496,7 @@ export class Experience {
           tier: this.quality.tier,
         };
       },
-      perf: () => ({ fps: this.fps, ...this.renderer.info, physicsMs: this.physics.lastStepMs }),
+      perf: () => ({ fps: this.fps, ...this.renderer.info, physicsMs: this.physics.lastStepMs, scatter: this.scatter.kindCounts }),
       teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) =>
         this.teleport(lat, lon, alt, heading, speed),
       setHour: (h: number) => this.setHour(h),
@@ -482,6 +513,9 @@ export class Experience {
         this.simFrozen = on;
       },
       respawn: () => this.plane.respawn('manual'),
+      zoom: (scale: number) => {
+        this.rig.distanceScale = scale;
+      },
       camera: (mode: 'chase' | 'cockpit') => updateSettings('camera', { mode }),
       orbitCamera: (yaw: number, pitch: number) => this.rig.look(-yaw / CAMERA.ORBIT_SENS_MOUSE, pitch / CAMERA.ORBIT_SENS_MOUSE, CAMERA.ORBIT_SENS_MOUSE, performance.now() / 1000 + 60),
     };
@@ -497,7 +531,11 @@ export class Experience {
     this.plane.dispose();
     this.airport.dispose();
     this.particles.dispose();
-    this.trees.dispose();
+    this.scatter.dispose();
+    this.rivers.dispose();
+    this.clouds.dispose();
+    this.atmosphere.dispose();
+    for (const m of this.terrainMats.values()) m.dispose();
     this.cities.dispose();
     this.ocean.dispose();
     this.sky.dispose();

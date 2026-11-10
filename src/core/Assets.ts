@@ -7,6 +7,29 @@ export async function fetchArrayBuffer(url: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
+/**
+ * Muat `<url>.gz` lalu buka dengan DecompressionStream (hemat ±60% unduhan walau hosting tidak
+ * mengompres file biner). Jika browser tidak mendukung atau gagal, pakai file mentah.
+ */
+export async function fetchCompressed(url: string): Promise<ArrayBuffer> {
+  const DS = (globalThis as { DecompressionStream?: typeof DecompressionStream }).DecompressionStream;
+  if (DS) {
+    try {
+      const res = await fetch(`${url}.gz`);
+      if (res.ok && res.body) {
+        // Server yang sudah mengirim Content-Encoding: gzip membuat browser membukanya otomatis.
+        const enc = res.headers.get('content-encoding');
+        if (enc && enc.includes('gzip')) return await res.arrayBuffer();
+        const stream = res.body.pipeThrough(new DS('gzip'));
+        return await new Response(stream).arrayBuffer();
+      }
+    } catch {
+      // Jatuh ke file mentah di bawah.
+    }
+  }
+  return fetchArrayBuffer(url);
+}
+
 export async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Gagal memuat ${url} (HTTP ${res.status})`);
@@ -22,18 +45,18 @@ export function assetUrl(path: string): string {
 export interface EarthAssets {
   earth: ArrayBuffer;
   meta: EarthMeta;
-  trees: ArrayBuffer;
+  rivers: ArrayBuffer;
   buildings: ArrayBuffer;
   cities: CityInfo[];
 }
 
 export async function loadEarthAssets(): Promise<EarthAssets> {
-  const [earth, meta, trees, buildings, cities] = await Promise.all([
-    fetchArrayBuffer(assetUrl('earth/earth.bin')),
+  const [earth, meta, rivers, buildings, cities] = await Promise.all([
+    fetchCompressed(assetUrl('earth/earth.bin')),
     fetchJson<EarthAssets['meta']>(assetUrl('earth/earth-meta.json')),
-    fetchArrayBuffer(assetUrl('earth/trees.bin')),
+    fetchCompressed(assetUrl('earth/rivers.bin')),
     fetchArrayBuffer(assetUrl('earth/buildings.bin')),
     fetchJson<EarthAssets['cities']>(assetUrl('earth/cities.json')),
   ]);
-  return { earth, meta, trees, buildings, cities };
+  return { earth, meta, rivers, buildings, cities };
 }

@@ -2,6 +2,8 @@
  * Format data planet (public/earth/*) — dipakai bersama oleh build-earth dan klien.
  */
 
+export const EARTH_FORMAT_VERSION = 2;
+
 export const TriClass = {
   Grass: 0,
   Sand: 1,
@@ -12,17 +14,6 @@ export const TriClass = {
   Airport: 6,
 } as const;
 export type TriClass = (typeof TriClass)[keyof typeof TriClass];
-
-export const TreeType = {
-  Round: 0,
-  Palm: 1,
-  Pine: 2,
-  TallPine: 3,
-  Cactus: 4,
-  Bush: 5,
-} as const;
-export type TreeType = (typeof TreeType)[keyof typeof TreeType];
-export const TREE_TYPE_COUNT = 6;
 
 export interface EarthChunkMeta {
   start: number;
@@ -35,7 +26,8 @@ export interface EarthMeta {
   version: number;
   quantRadius: number;
   triangleCount: number;
-  sections: { positions: number; colors: number; classes: number };
+  sections: { positions: number; colors: number; classes: number; aux: number };
+  rivers: { vertexCount: number; strips: number[] };
   chunks: EarthChunkMeta[];
 }
 
@@ -47,9 +39,22 @@ export interface CityInfo {
 }
 
 /** Ukuran record biner. */
-export const TREE_RECORD_BYTES = 8;
 export const BUILDING_RECORD_BYTES = 10;
-/** Skala pohon tersimpan sebagai byte 0..255 → 0,5..1,5. */
-export function decodeTreeScale(b: number): number {
-  return 0.5 + b / 255;
+/** Satu titik pita sungai: int16 x,y,z + uint16 (u×4 << 1 | sisi). */
+export const RIVER_VERTEX_BYTES = 8;
+
+/** Byte kelas: bit 0–2 = TriClass, bit 3–5 = kekeringan 0..7. */
+export function classOf(b: number): TriClass {
+  return (b & 7) as TriClass;
+}
+export function drynessOf(b: number): number {
+  return ((b >> 3) & 7) / 7;
+}
+
+/** aux per segitiga: kepadatan hutan (nibble atas) dan ladang (nibble bawah), masing-masing 0..15. */
+export function auxForest(aux: number): number {
+  return (aux >> 4) / 15;
+}
+export function auxFarm(aux: number): number {
+  return (aux & 15) / 15;
 }

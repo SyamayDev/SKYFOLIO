@@ -46,6 +46,8 @@ const _m = new Matrix4();
 const _q = new Quaternion();
 
 export class CameraRig {
+  /** Pengali jarak kamera pengejar (zoom roda mouse / cubit; juga dipakai tes close-up). */
+  distanceScale = 1;
   readonly camera: PerspectiveCamera;
   mode: CameraMode = 'chase';
   /** 0..1, bertambah saat tabrakan, berkurang perlahan. */
@@ -159,6 +161,7 @@ export class CameraRig {
       dist += Math.max(0, t.speed - 30) * CAMERA.CHASE_SPEED_PULLBACK;
       dist *= 1 + Math.min(CAMERA.ALT_DISTANCE_MAX, alt / CAMERA.ALT_DISTANCE_SCALE);
       if (opts.portrait) dist *= CAMERA.CHASE_DISTANCE_PORTRAIT_MULT;
+      if (this.distanceScale !== 1) dist *= this.distanceScale;
 
       // Arah mendatar (bidang tangen) dari rangka kamera + sudut angguk pesawat.
       _h.copy(this.frameDir).addScaledVector(_up, -this.frameDir.dot(_up));

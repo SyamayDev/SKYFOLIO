@@ -1,14 +1,15 @@
 /**
- * Planet low-poly dari public/earth/earth.bin (dibuat scripts/build-earth.ts).
- * - 80 chunk mesh (frustum culling + culling horizon) dengan satu material warna-titik.
+ * Planet low-poly dari public/earth/earth.bin (dibuat scripts/build-earth.ts, format v2).
+ * - 80 chunk mesh (frustum culling + culling horizon) dengan material medan prosedural.
  * - Collider trimesh Rapier per chunk; chunk jauh dari pesawat dinonaktifkan.
+ * - Data segitiga (posisi, kelas, aux) disimpan supaya sistem sebaran props (Scatter) bisa memakainya.
  * - Bola lantai laut sebagai jaring pengaman.
  */
 import type RAPIER from '@dimforge/rapier3d-compat';
-import { BufferGeometry, Color, Float32BufferAttribute, Group, Mesh, SRGBColorSpace, Vector3, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Group, Mesh, SRGBColorSpace, Vector3, type Material } from 'three';
 import { PLANET_RADIUS, SEA_FLOOR_RADIUS } from '../config/world';
 import { GROUP, interactionGroups, type PhysicsWorld, type SurfaceMaterial } from '../physics/PhysicsWorld';
-import { TriClass, type EarthMeta } from './EarthFormat';
+import { TriClass, classOf, type EarthMeta } from './EarthFormat';
 
 interface Chunk {
   mesh: Mesh;
@@ -18,6 +19,7 @@ interface Chunk {
   angularRadius: number;
   collider: RAPIER.Collider | null;
   start: number;
+  count: number;
 }
 
 const COLLIDER_RANGE = 160;
@@ -45,8 +47,6 @@ export function classMaterial(cls: number): SurfaceMaterial {
       return 'rock';
     case TriClass.Lake:
       return 'water';
-    case TriClass.Airport:
-      return 'grass';
     default:
       return 'grass';
   }
@@ -55,8 +55,13 @@ export function classMaterial(cls: number): SurfaceMaterial {
 export class Planet {
   readonly group = new Group();
   readonly chunks: Chunk[] = [];
+  /** Posisi semua segitiga (9 float per segitiga, urutan chunk). */
+  readonly triPos: Float32Array;
   readonly classes: Uint8Array;
+  readonly aux: Uint8Array;
+  readonly triangleCount: number;
   private seaFloor: RAPIER.Collider | null = null;
+  private material: Material;
 
   constructor(
     data: ArrayBuffer,
@@ -65,34 +70,48 @@ export class Planet {
     private readonly physics: PhysicsWorld,
   ) {
     this.group.name = 'planet';
+    this.material = material;
     const total = meta.triangleCount;
+    this.triangleCount = total;
     const pos = new Int16Array(data, meta.sections.positions, total * 9);
     const col = new Uint8Array(data, meta.sections.colors, total * 3);
     this.classes = new Uint8Array(data, meta.sections.classes, total);
+    this.aux = new Uint8Array(data, meta.sections.aux, total);
     const scale = meta.quantRadius / 32767;
+    this.triPos = new Float32Array(total * 9);
+    for (let i = 0; i < total * 9; i++) this.triPos[i] = pos[i]! * scale;
     const R = physics.R;
     const groups = interactionGroups(GROUP.TERRAIN, 0xffff);
 
     for (const [index, ch] of meta.chunks.entries()) {
       if (ch.count === 0) continue;
       const n = ch.count * 3;
-      const positions = new Float32Array(n * 3);
+      const positions = this.triPos.subarray(ch.start * 9, (ch.start + ch.count) * 9);
       const colors = new Float32Array(n * 3);
+      const auxAttr = new Uint8Array(n * 4);
       for (let t = 0; t < ch.count; t++) {
         const tri = ch.start + t;
         const cr = SRGB_TO_LINEAR[col[tri * 3]!]!;
         const cg = SRGB_TO_LINEAR[col[tri * 3 + 1]!]!;
         const cb = SRGB_TO_LINEAR[col[tri * 3 + 2]!]!;
-        for (let k = 0; k < 9; k++) positions[t * 9 + k] = pos[tri * 9 + k]! * scale;
+        const a = this.aux[tri]!;
+        const forest = (a >> 4) * 17;
+        const farm = (a & 15) * 17;
+        const cls = (this.classes[tri]! & 7) * 32;
         for (let k = 0; k < 3; k++) {
           colors[t * 9 + k * 3] = cr;
           colors[t * 9 + k * 3 + 1] = cg;
           colors[t * 9 + k * 3 + 2] = cb;
+          auxAttr[t * 12 + k * 4] = forest;
+          auxAttr[t * 12 + k * 4 + 1] = farm;
+          auxAttr[t * 12 + k * 4 + 2] = cls;
+          auxAttr[t * 12 + k * 4 + 3] = 255;
         }
       }
       const geo = new BufferGeometry();
-      geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
-      geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+      geo.setAttribute('position', new BufferAttribute(positions, 3));
+      geo.setAttribute('color', new BufferAttribute(colors, 3));
+      geo.setAttribute('aux', new BufferAttribute(auxAttr, 4, true));
       geo.computeVertexNormals(); // non-indexed → normal per muka (faceted)
       geo.computeBoundingSphere();
       const mesh = new Mesh(geo, material);
@@ -129,6 +148,7 @@ export class Planet {
         angularRadius: Math.asin(Math.min(1, ch.radius / Math.max(center.length(), ch.radius))),
         collider,
         start: ch.start,
+        count: ch.count,
       });
     }
 
@@ -139,12 +159,19 @@ export class Planet {
     physics.setInfo(this.seaFloor, { kind: 'terrain', material: 'water' });
   }
 
+  /** Ganti material medan (mis. saat tier kualitas berubah). */
+  setMaterial(material: Material): void {
+    if (material === this.material) return;
+    this.material = material;
+    for (const c of this.chunks) c.mesh.material = material;
+  }
+
   /** Material permukaan di titik raycast (dari kelas segitiga). */
   materialAt(collider: RAPIER.Collider, featureId: number | undefined): SurfaceMaterial {
     const info = this.physics.infoOf(collider);
     const owner = info?.owner as { start: number } | undefined;
     if (!owner || featureId === undefined || featureId < 0) return info?.material ?? 'grass';
-    return classMaterial(this.classes[owner.start + featureId] ?? TriClass.Grass);
+    return classMaterial(classOf(this.classes[owner.start + featureId] ?? TriClass.Grass));
   }
 
   /** Aktifkan collider chunk di dekat titik-titik penting (pesawat, kamera). */

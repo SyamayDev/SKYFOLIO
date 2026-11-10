@@ -45,6 +45,8 @@ export class Sky {
   private readonly tmpC = new Color();
   private readonly up = new Vector3();
   private shadowRange = 30;
+  /** 0..1 kamera berada di dalam awan → kabut putih pekat. */
+  private cloudFog = 0;
 
   constructor(private readonly scene: Scene) {
     // Kubah langit
@@ -84,6 +86,11 @@ export class Sky {
 
     this.fog = new Fog(new Color(PALETTE.skyDayHorizon), 60, 900);
     scene.fog = this.fog;
+  }
+
+  setCloudFog(density: number): void {
+    // Dihaluskan supaya masuk/keluar awan terasa lembut.
+    this.cloudFog += (density - this.cloudFog) * 0.18;
   }
 
   setSunDirection(dir: Vector3): void {
@@ -133,6 +140,12 @@ export class Sky {
     this.fog.color.copy(this.horizon).lerp(this.tmpC.set('#ffffff'), 0.12 * dayK);
     this.fog.near = 40 + Math.max(0, alt) * 1.6;
     this.fog.far = (260 + Math.max(0, alt) * 5) * (1 + spaceK * 30);
+    if (this.cloudFog > 0.01) {
+      const k = this.cloudFog;
+      this.fog.color.lerp(this.tmpC.set('#F4F8FF'), k * 0.9);
+      this.fog.near *= 1 - k * 0.97;
+      this.fog.far = this.fog.far + (9 - this.fog.far) * k;
+    }
 
     // Hemisfer: arahkan ke atas lokal kamera; redup dan kebiruan saat malam.
     this.hemi.position.copy(this.up);

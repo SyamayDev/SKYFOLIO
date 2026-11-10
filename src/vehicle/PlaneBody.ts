@@ -1,6 +1,8 @@
 /**
- * Rigid body biplane (docs/03 bagian 3). Dipisah dari Plane.ts supaya unit test memakai badan yang sama.
- * Ukuran collider cocok dengan model visual di PlaneModel.ts.
+ * Rigid body pesawat PK-ARL (docs/03 bagian 3). Dipisah dari Plane.ts supaya unit test memakai badan yang sama.
+ * Ukuran collider cocok dengan model visual di PlaneModel.ts (pesawat mainan bersayap rendah sesuai
+ * gambar referensi Aril, lihat docs/decisions.md). Massa & inersia diatur eksplisit di config/flight.ts,
+ * jadi bentuk collider hanya memengaruhi tabrakan, bukan rasa terbang.
  */
 import type RAPIER from '@dimforge/rapier3d-compat';
 import type { Quaternion, Vector3 } from 'three';
@@ -9,14 +11,14 @@ import { GROUP, interactionGroups, type PhysicsWorld } from '../physics/PhysicsW
 
 /** Dimensi badan pesawat (unit) — dipakai juga oleh model visual. */
 export const PLANE_DIMENSIONS = {
-  fuselageHalfLength: 1.45,
-  fuselageRadius: 0.5,
-  fuselageCenterZ: 0.25,
-  upperWing: { halfSpan: 2.35, halfChord: 0.5, y: 1.0, z: -0.55, halfThick: 0.07 },
-  lowerWing: { halfSpan: 2.15, halfChord: 0.46, y: -0.32, z: -0.45, halfThick: 0.07 },
-  tailPlane: { halfSpan: 0.95, halfChord: 0.32, y: 0.22, z: 2.05, halfThick: 0.05 },
-  fin: { halfHeight: 0.48, halfChord: 0.32, y: 0.68, z: 2.1, halfThick: 0.05 },
-  /** Titik pasang suspensi roda (rangka badan). */
+  fuselageHalfLength: 1.55,
+  fuselageRadius: 0.58,
+  fuselageCenterZ: 0.2,
+  /** Sayap utama (rendah). */
+  wing: { halfSpan: 2.6, halfChord: 0.55, y: -0.24, z: -0.38, halfThick: 0.1 },
+  tailPlane: { halfSpan: 1.0, halfChord: 0.32, y: 0.24, z: 2.0, halfThick: 0.05 },
+  fin: { halfHeight: 0.5, halfChord: 0.34, y: 0.75, z: 2.05, halfThick: 0.05 },
+  /** Titik pasang suspensi roda (rangka badan). Sama dengan versi sebelumnya supaya rasa di darat tetap. */
   mainGear: { x: 0.68, y: -0.5, z: -0.72 },
   tailGear: { x: 0, y: -0.42, z: 2.15 },
 } as const;
@@ -56,20 +58,7 @@ export function createPlaneBody(physics: PhysicsWorld, position: Vector3, rotati
       .setTranslation(0, 0.05, D.fuselageCenterZ)
       .setRotation({ x: s, y: 0, z: 0, w: s }),
   );
-  add(
-    R.ColliderDesc.cuboid(D.upperWing.halfSpan, D.upperWing.halfThick, D.upperWing.halfChord).setTranslation(
-      0,
-      D.upperWing.y,
-      D.upperWing.z,
-    ),
-  );
-  add(
-    R.ColliderDesc.cuboid(D.lowerWing.halfSpan, D.lowerWing.halfThick, D.lowerWing.halfChord).setTranslation(
-      0,
-      D.lowerWing.y,
-      D.lowerWing.z,
-    ),
-  );
+  add(R.ColliderDesc.cuboid(D.wing.halfSpan, D.wing.halfThick, D.wing.halfChord).setTranslation(0, D.wing.y, D.wing.z));
   add(
     R.ColliderDesc.cuboid(D.tailPlane.halfSpan, D.tailPlane.halfThick, D.tailPlane.halfChord).setTranslation(
       0,
