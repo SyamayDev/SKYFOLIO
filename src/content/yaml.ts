@@ -185,7 +185,7 @@ export function stringifyYaml(obj: Record<string, YamlValue>, indent = 0): strin
 
 /** Pisahkan frontmatter (antara baris `---`) dari isi markdown. */
 export function splitFrontmatter(text: string): { data: Record<string, YamlValue>; body: string } {
-  const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text);
+  const m = /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text);
   if (!m) return { data: {}, body: text };
   return { data: parseYaml(m[1]!), body: m[2]! };
 }
