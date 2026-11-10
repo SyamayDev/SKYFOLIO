@@ -17,6 +17,9 @@ type Hooks = {
   camera: (mode: 'chase' | 'cockpit') => void;
   freeze: (on: boolean) => void;
   openPanel: (kind: string, id?: string) => void;
+  setHour: (h: number | null) => void;
+  weather: (k: string | null) => void;
+  moonApproach: (h: number, v: number) => void;
 };
 
 async function hooks(page: Page, fn: (h: Hooks) => void): Promise<void> {
@@ -41,8 +44,13 @@ for (const vp of VIEWPORTS) {
       // Lepas landas
       await page.keyboard.down('KeyW');
       await page.waitForTimeout(3200);
-      await shot('3-lepas-landas');
       await page.keyboard.up('KeyW');
+      // Di HP: ketuk layar supaya UI beralih ke mode sentuh (joystick & tombol tampil).
+      if (vp.mobile) {
+        await page.touchscreen.tap(vp.width / 2, vp.height * 0.45);
+        await page.waitForTimeout(400);
+      }
+      await shot('3-lepas-landas');
       // Terbang rendah mendekati Danau Toba (planet kecil: 30 unit/dtk ≈ 4°/dtk, jadi foto cepat).
       await hooks(page, (h) => {
         h.teleport(3.0, 99.3, 16, 220, 30);
@@ -95,6 +103,45 @@ for (const vp of VIEWPORTS) {
       for (const [name, kind, id] of panels) {
         await page.evaluate(([k, i]) => (window as unknown as { __skyfolio: Hooks }).__skyfolio.openPanel(k!, i), [kind, id]);
         await page.waitForTimeout(700);
+        await shot(name);
+      }
+      await page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-testid=panel-close]')?.click());
+      // Fase 2: waktu nyata, cuaca, angkasa, Bulan.
+      const scenes: [string, (h: Hooks) => void][] = [
+        ['18-senja', (h) => {
+          h.setHour(18.2);
+          h.weather('clear');
+          h.freeze(false);
+          h.teleport(4.2, 98.2, 22, 250, 30);
+        }],
+        ['19-malam', (h) => {
+          h.setHour(22);
+          h.weather('clear');
+          h.freeze(false);
+          h.teleport(3.2, 98.9, 26, 330, 30);
+        }],
+        ['20-hujan-medan', (h) => {
+          h.setHour(10);
+          h.weather('rain');
+          h.freeze(false);
+          h.teleport(7.9, 97.3, 10, 150, 26);
+        }],
+        ['21-orbit', (h) => {
+          h.setHour(10);
+          h.weather(null);
+          h.freeze(false);
+          h.teleport(-2, 110, 300, 90, 40);
+        }],
+        ['22-bulan', (h) => {
+          h.freeze(false);
+          h.moonApproach(1.5, 0.5);
+        }],
+      ];
+      for (const [name, fn] of scenes) {
+        await hooks(page, fn);
+        await page.waitForTimeout(3200);
+        await hooks(page, (h) => h.freeze(true));
+        await page.waitForTimeout(500);
         await shot(name);
       }
     });

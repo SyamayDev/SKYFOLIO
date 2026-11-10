@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   /**
    * Form kontak (docs/10 bagian 4): Web3Forms langsung dari browser bila VITE_WEB3FORMS_ACCESS_KEY diisi,
    * dengan honeypot `botcheck`. Tanpa key (atau gagal) → fallback membuka email dengan isi siap kirim.
@@ -52,16 +53,16 @@
 <p class="p-kicker">{$t('panels.contact')}</p>
 <h2 class="p-title">{$t('contact.title')}</h2>
 {#if status === 'sent'}
-  <p class="p-card">📬 {$t('contact.sent')}</p>
+  <p class="p-card p-icon"><Icon name="mail" size={18} /> {$t('contact.sent')}</p>
 {:else}
   <form onsubmit={send} novalidate>
     <label class="p-field">{$t('contact.name')}<input bind:value={name} maxlength="80" autocomplete="name" required data-autofocus /></label>
     <label class="p-field">{$t('contact.email')}<input type="email" bind:value={email} maxlength="120" autocomplete="email" required /></label>
     <label class="p-field">{$t('contact.message')}<textarea bind:value={message} rows="5" maxlength="3000" required></textarea></label>
     <input class="hp" tabindex="-1" autocomplete="off" bind:value={botcheck} aria-hidden="true" name="botcheck" />
-    {#if status === 'error'}<p class="p-card err">⚠️ {$t('contact.error')} <a href={mailto()}>{$content.socials.contactEmail}</a></p>{/if}
+    {#if status === 'error'}<p class="p-card err p-icon"><Icon name="warn" size={18} /> <span>{$t('contact.error')} <a href={mailto()}>{$content.socials.contactEmail}</a></span></p>{/if}
     <div class="p-row">
-      <button class="p-btn" type="submit" disabled={!valid || status === 'sending'}>{status === 'sending' ? $t('contact.sending') : `✉️ ${$t('contact.send')}`}</button>
+      <button class="p-btn" type="submit" disabled={!valid || status === 'sending'}>{#if status !== 'sending'}<Icon name="mail" size={18} />{/if} {status === 'sending' ? $t('contact.sending') : $t('contact.send')}</button>
     </div>
     <p class="p-muted">{KEY ? $t('contact.privacy') : $t('contact.fallback')}</p>
   </form>

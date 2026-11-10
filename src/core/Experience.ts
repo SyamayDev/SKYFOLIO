@@ -7,7 +7,7 @@ import { Scene, TextureLoader, Vector3, Quaternion } from 'three';
 import { AudioManager } from '../audio/AudioManager';
 import { CameraRig, type CameraTarget } from '../camera/CameraRig';
 import { CAMERA } from '../config/camera';
-import { BASE_WIND, HOME, PLANET_RADIUS } from '../config/world';
+import { HOME, PLANET_RADIUS } from '../config/world';
 import { PhysicsWorld } from '../physics/PhysicsWorld';
 import { Autopilot, type AutopilotTarget } from '../ai/Autopilot';
 import { AUTOPILOT } from '../config/flight';
@@ -31,7 +31,15 @@ import { Ocean } from '../world/Ocean';
 import { Particles } from '../world/Particles';
 import { Planet } from '../world/Planet';
 import { Sky } from '../world/Sky';
-import { manualDate, sunDirection } from '../world/Sun';
+import { sunDirection } from '../world/Sun';
+import { WorldClock, dayPartOf } from '../world/WorldClock';
+import { Weather } from '../world/Weather';
+import { MusicEngine, toStation } from '../audio/MusicEngine/MusicEngine';
+import { ZONE_THEME, type ThemeId } from '../audio/MusicEngine/themes';
+import { WorldAudio } from '../audio/WorldAudio';
+import { circuit } from '../world/Zones/SkyCircuit';
+import type { WeatherKind } from '../world/weatherCodes';
+import { seasonOf, uFlash, uNight, uSeason } from '../world/WorldState';
 import { HomeAirport } from '../world/Zones/HomeAirport';
 import { AmbientLife } from '../world/AmbientLife';
 import { WorldLandmarks } from '../world/Landmarks/WorldLandmarks';
@@ -52,20 +60,21 @@ import { ZoneManager, horizonVisible } from '../world/Zones/ZoneManager';
 import { detailCuller } from '../world/DetailCuller';
 import type { ZoneDeps } from '../world/Zones/ZoneKit';
 import { TutorialController } from '../ui/tutorial';
-import { appPhase, autopilotState, fade, fadeColor, hud, isPortrait, panel, paused, planeGeo, preflight } from './AppState';
+import { appPhase, autopilotState, currentZone, fade, fadeColor, hud, isPortrait, panel, paused, planeGeo, preflight } from './AppState';
 import { assetUrl, loadEarthAssets } from './Assets';
 import { createDebugPanel, isDebugEnabled } from './Debug';
 import { bus, type PreflightItemId , type PanelKind } from './EventBus';
 import { Input } from './Input';
 import { FixedStepper } from './Loop';
 import { QualityManager } from './QualityManager';
-import { Renderer } from './Renderer';
+import { Renderer, type PostMode } from './Renderer';
 import { reducedMotionActive, settings, updateSettings } from './Settings';
 import { Time } from './Time';
 
 const _v = new Vector3();
 const _w = new Vector3();
 const _apUp = new Vector3();
+const _sunTmp = new Vector3();
 const _hv = new Vector3();
 
 function markLoaded(id: PreflightItemId): void {
@@ -78,6 +87,9 @@ export class Experience {
   readonly time = new Time();
   stepper = new FixedStepper(1 / 60, 4);
   readonly audio = new AudioManager();
+  music: MusicEngine | null = null;
+  worldAudio: WorldAudio | null = null;
+  private musicBoost = 0;
   renderer!: Renderer;
   physics!: PhysicsWorld;
   gravity!: RadialGravity;
@@ -130,7 +142,13 @@ export class Experience {
   private fpsFrames = 0;
   private fpsTime = 0;
   private fps = 60;
-  private hour = 10;
+  readonly clock = new WorldClock();
+  weather!: Weather;
+  private coverage = 0.6;
+  /** 0..1 kepadatan awan/kabut di posisi kamera (kanopi, audio). */
+  cloudDensity = 0;
+  private sunTimer = 0;
+  private dayPart = '';
   private readonly wind = new Vector3();
   private readonly camTarget: CameraTarget = {
     position: new Vector3(),
@@ -195,10 +213,12 @@ export class Experience {
     this.clouds = new Clouds(this.quality.tier);
     this.scene.add(this.clouds.group);
     this.atmosphere = new Atmosphere();
+    this.weather = new Weather(this.quality.tier);
+    this.scene.add(this.weather.group);
     this.scene.add(this.atmosphere.mesh);
     this.sky = new Sky(this.scene);
     this.sky.setShadow(preset.shadowMapSize, preset.shadowRange);
-    this.setHour(s.world.manualTimeOfDay ?? 10);
+    this.applySun();
     markLoaded('map');
 
     // Bandara: aktifkan collider sekitar bandara dulu supaya penempatan di tanah akurat.
@@ -254,7 +274,9 @@ export class Experience {
       this.zones.add(z);
     }
     this.moon.ensureBuilt(this.zoneDeps);
-    this.moon.place(this.sky.sunDir, new Date(), this.plane.position, true);
+    this.moon.place(this.sky.sunDir, this.clock.now(), this.plane.position, true);
+    // Gravitasi Bulan aktif di wilayah pengaruhnya (MOON_SOI); vektor pusat ikut bergerak saat Bulan dipindah.
+    this.gravity.moonCenter = this.moon.moonCenter;
     this.landmarks = new WorldLandmarks(this.zoneDeps);
     this.scene.add(this.landmarks.group);
     this.autopilot = new Autopilot((dir) => this.planet.heightAt(dir, 0));
@@ -281,6 +303,7 @@ export class Experience {
       }),
       bus.on('input:device', (e) => this.airport.setDevice(e.device)),
       settings.subscribe((st) => this.rig.setMode(st.camera.mode === 'cockpit' ? 'cockpit' : 'chase')),
+      settings.subscribe(() => this.rig && this.applyPost()),
       paused.subscribe((p) => {
         if (!p) this.time.resetClock();
       }),
@@ -296,7 +319,7 @@ export class Experience {
     hud.patch({ backend: this.renderer.backend, tier: this.quality.tier });
     void createDebugPanel({
       setHour: (h) => this.setHour(h),
-      getHour: () => this.hour,
+      getHour: () => this.clock.medanHour(),
       respawn: () => this.requestRespawn(),
       teleport: (lat, lon, alt, heading, speed) => this.teleport(lat, lon, alt, heading, speed),
       returnLetters: () => this.airport.letters.returnAll(),
@@ -314,9 +337,99 @@ export class Experience {
     return hit ? hit.point.length() - PLANET_RADIUS : null;
   }
 
-  setHour(hour: number): void {
-    this.hour = hour;
-    this.sky.setSunDirection(sunDirection(manualDate(hour)));
+  private startAudioWorld(): void {
+    const ctx = this.audio.ctx;
+    if (!ctx || this.music || !this.audio.noise) return;
+    this.music = new MusicEngine(ctx, this.audio.bus('music'), this.audio.noise);
+    this.music.setTheme('home');
+    this.music.setStation(toStation(settings.get().audio.radioStation));
+    this.music.start();
+    this.worldAudio = new WorldAudio(this.audio, this.quality.tier);
+    const zc = (id: string): Vector3 | null => this.zones.get(id)?.center ?? null;
+    for (const [id, kind, dist] of [
+      ['mc-stage', 'crowd', 90],
+      ['aril-kitchen', 'sizzle', 70],
+      ['hangar-lab', 'lava', 110],
+      ['lantern-valley', 'chimes', 80],
+    ] as const) {
+      const c = zc(id);
+      if (c) this.worldAudio.addEmitter(c, dist, kind);
+    }
+    this.unsubs.push(
+      bus.on('stamp', () => this.music?.stinger('stamp')),
+      bus.on('zone:enter', () => {
+        this.music?.stinger('zone');
+        this.musicBoost = 0.3;
+      }),
+      bus.on('plane:landed', (e) => {
+        if (e.smooth) this.music?.stinger('landing');
+      }),
+      bus.on('moon:landed', () => this.music?.stinger('moon')),
+      settings.subscribe((st) => this.music?.setStation(toStation(st.audio.radioStation))),
+    );
+  }
+
+  private updateAudio(dt: number, camPos: Vector3): void {
+    if (!this.audio.ctx) return;
+    const reg = this.plane.space.regime;
+    const spaceK = reg === 'space' || reg === 'moon' ? 1 : reg === 'stratosphere' ? 0.35 : 0;
+    this.audio.update({ cloud: this.cloudDensity, inWater: this.plane.water.inWater, space: spaceK, canopyClosed: this.plane.canopy.closed });
+    const cam = this.rig.camera;
+    _v.set(0, 0, -1).applyQuaternion(cam.quaternion);
+    _w.set(0, 1, 0).applyQuaternion(cam.quaternion);
+    this.audio.setListener(camPos.x, camPos.y, camPos.z, _v.x, _v.y, _v.z, _w.x, _w.y, _w.z);
+    const sp = this.plane.space;
+    this.worldAudio?.update(dt, {
+      rocket: sp.thrust,
+      heat: sp.heat,
+      rain: this.weather.current.rain,
+      canopyClosed: this.plane.canopy.closed,
+      agl: this.plane.env.heightAboveGround,
+      overWater: this.plane.altitude < 25 && this.planet.heightAt(_v.copy(this.plane.position).normalize(), -1) < 0,
+      night: this.sky.sunElevation < 0.02,
+      space: spaceK,
+      camPos,
+    });
+    this.updateMusic(dt);
+  }
+
+  /** Tema musik dari lapisan langit, sirkuit, dan zona. */
+  private updateMusic(dt: number): void {
+    const m = this.music;
+    if (!m) return;
+    const reg = this.plane.space.regime;
+    let theme: ThemeId;
+    if (reg === 'moon') theme = 'moon';
+    else if (reg === 'space') theme = 'space';
+    else if (circuit.get().racing) theme = 'race';
+    else {
+      const z = currentZone.get();
+      theme = (z && ZONE_THEME[z]) || (this.plane.ground.grounded ? 'home' : 'adventure');
+      if (theme === 'lantern' && this.sky.sunElevation > 0.1 && !z) theme = 'adventure';
+    }
+    m.setTheme(theme);
+    this.musicBoost = Math.max(0, this.musicBoost - dt * 0.05);
+    const st = this.plane.flight.state;
+    m.setIntensity(0.3 + Math.min(1, st.speed / 70) * 0.4 + (st.boosting ? 0.25 : 0) + this.musicBoost);
+  }
+
+  /** Paksa jam (debug/tes). `null` kembali mengikuti Pengaturan. */
+  setHour(hour: number | null): void {
+    this.clock.override = hour;
+    this.applySun();
+  }
+
+  /** Matahari, musim, dan tema UI dari jam dunia (dipanggil tiap detik; jam nyata bergerak pelan). */
+  private applySun(): void {
+    const date = this.clock.now();
+    this.sky.setSunDirection(sunDirection(date, _sunTmp));
+    const st = settings.get().world;
+    uSeason.value = st.seasons ? seasonOf(date) : 0;
+    const part = st.uiThemeFollowsDayNight ? dayPartOf(new Date().getHours()) : 'day';
+    if (part !== this.dayPart) {
+      this.dayPart = part;
+      document.documentElement.dataset.daypart = part;
+    }
   }
 
   /** Material medan sesuai tier (detail prosedural penuh kecuali tier Low). */
@@ -347,7 +460,19 @@ export class Experience {
     this.particles.setCapacity(p.particles);
     this.ocean.setDetail(p.oceanDetail);
     this.plane.model.root.traverse((o) => (o.castShadow = p.shadowMapSize > 0 && o.castShadow !== false));
+    this.applyPost();
     hud.patch({ tier: this.quality.tier });
+  }
+
+  /** Post-processing: Pengaturan (auto/on/off) + tier. Uji otomatis (?test) tanpa efek supaya cepat & stabil. */
+  private applyPost(): void {
+    const pp = settings.get().graphics.postProcessing;
+    const tier = this.quality.tier;
+    let mode: PostMode = tier === 'low' ? 'off' : tier === 'medium' ? 'light' : 'full';
+    if (pp === 'off') mode = 'off';
+    else if (pp === 'on') mode = tier === 'low' ? 'light' : 'full';
+    if (new URLSearchParams(location.search).has('nopost')) mode = 'off';
+    this.renderer.setPost(this.scene, this.rig.camera, mode);
   }
 
   private onResize = (): void => {
@@ -364,6 +489,8 @@ export class Experience {
     this.boarded = true;
     await this.audio.unlock();
     this.audio.sfx?.starter();
+    // Musik dan suara dunia dibuat sesaat setelah naik (render instrumen ±50 ms, tidak mengganggu tombol).
+    setTimeout(() => this.startAudioWorld(), 500);
     this.plane.setFrozen(false);
     setTimeout(() => {
       this.plane.engineRunning = true;
@@ -395,6 +522,7 @@ export class Experience {
     t.speed = t.velocity.length();
     t.grounded = this.plane.ground.grounded;
     t.boosting = this.plane.flight.state.boosting;
+    this.plane.upVector((t.up ??= new Vector3()));
     this.plane.model.cockpitEye.getWorldPosition(t.cockpitEye);
   }
 
@@ -419,7 +547,7 @@ export class Experience {
       if (!this.simFrozen) this.time.advance(dt);
       const s = settings.get();
       // Angin dasar (arah dari timur laut) di posisi pesawat.
-      bearingDirection(this.plane.position, (BASE_WIND.fromBearingDeg + 180) % 360, this.wind).multiplyScalar(BASE_WIND.speed);
+      this.wind.copy(this.weather.wind);
       this.plane.setWind(this.wind);
       this.plane.readInput(this.input, s.controls.assistLevel);
       this.updateAutopilot();
@@ -441,6 +569,13 @@ export class Experience {
       }
 
       const night = this.sky.sunElevation < 0.05;
+      this.plane.canopy.update(dt, {
+        rain: this.weather.current.rain + this.weather.current.snow,
+        cloud: this.cloudDensity,
+        regime: this.plane.space.regime,
+        airspeed: this.plane.flight.state.airspeed,
+        mode: s.controls.canopy,
+      });
       this.plane.animate(dt, night);
       const pos = this.plane.position;
       this.planet.updateColliders(pos);
@@ -493,13 +628,28 @@ export class Experience {
       );
     }
 
+    this.sunTimer += this.time.rawDelta;
+    if (this.sunTimer > 1) {
+      this.sunTimer = 0;
+      this.applySun();
+    }
     const camPos = this.rig.camera.position;
     this.planet.updateVisibility(camPos);
     this.scatter.update(dt, this.rig.camera, this.plane.position, this.plane.env.heightAboveGround);
     this.clouds.update(isPaused ? 0 : dt, camPos);
-    this.sky.setCloudFog(this.clouds.densityAt(camPos));
+    const wx = this.weather;
+    wx.update(isPaused ? 0 : dt, camPos, this.plane.position, this.sky.sunDir, this.clock.now(), uSeason.value);
+    const wc = wx.current;
+    this.coverage += (0.45 + wc.cloud * 0.55 - this.coverage) * Math.min(1, dt * 0.05);
+    this.clouds.setCoverage(this.coverage);
+    this.clouds.brightness.value = 1 - wc.storm * 0.42 - wc.rain * 0.15;
+    this.cloudDensity = Math.max(this.clouds.densityAt(camPos), wx.densityAt(camPos), wc.fog * 0.55);
+    this.sky.sunDim = 1 - wc.cloud * 0.3 - wc.storm * 0.35;
+    this.sky.setCloudFog(this.cloudDensity);
     this.sky.update(camPos, this.plane.position);
     this.atmosphere.update(camPos, this.sky.sunDir);
+    this.renderer.bloomStrength.value = 0.28 + uNight.value * 0.4 + uFlash.value * 0.5;
+    this.updateAudio(isPaused ? 0 : dt, camPos);
     this.renderer.render(this.scene, this.rig.camera);
 
     // fps + HUD (±15 Hz)
@@ -627,7 +777,7 @@ export class Experience {
     this.moonTimer += dt;
     if (this.moonTimer > 5) {
       this.moonTimer = 0;
-      this.moon.place(this.sky.sunDir, new Date(), t.planePos);
+      this.moon.place(this.sky.sunDir, this.clock.now(), t.planePos);
     }
     // Tombol Aksi kontekstual.
     const act = this.zones.action(t);
@@ -653,7 +803,7 @@ export class Experience {
     hud.patch({
       speed: toKmh(this.plane.ground.grounded ? (groundSpeed < 0.4 ? 0 : groundSpeed) : st.airspeed),
       // Ketinggian roda di atas permukaan laut (pusat badan ±1,2 unit di atas roda).
-      altitude: Math.max(0, this.plane.altitude - 1.2),
+      altitude: Math.max(0, this.plane.surfaceAltitude - 1.2),
       heading,
       verticalSpeed: st.verticalSpeed,
       throttle: st.throttle,
@@ -662,6 +812,8 @@ export class Experience {
       // Peringatan stall hanya saat benar-benar terbang (bukan memantul dekat tanah).
       stalled: st.stalled && this.plane.env.heightAboveGround > 3,
       boosting: st.boosting,
+      regime: this.plane.space.regime,
+      rocket: this.plane.space.rocket,
       fps: this.fps,
       drawCalls: info.drawCalls,
       triangles: info.triangles,
@@ -775,13 +927,42 @@ export class Experience {
       perf: () => ({ fps: this.fps, ...this.renderer.info, physicsMs: this.physics.lastStepMs, scatter: this.scatter.kindCounts }),
       teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) =>
         this.teleport(lat, lon, alt, heading, speed),
-      setHour: (h: number) => this.setHour(h),
+      setHour: (h: number | null) => this.setHour(h),
+      weather: (kind: WeatherKind | null) => {
+        this.weather.force = kind;
+      },
+      weatherState: () => ({ ...this.weather.current, home: this.weather.home, wet: this.weather.current.rain }),
       /** Pesawat di jalur pendekatan landasan (along negatif = sebelum ambang barat laut). */
       approach: (along: number, height: number, speed: number) => {
         const f = this.airport.frame;
         const p = f.onSurface(along, 0, height);
         const fwd = f.forwardAt(along, 0, new Vector3());
         this.plane.teleport(p, quatFromUpForward(p.clone().normalize(), fwd), fwd.clone().multiplyScalar(speed));
+        this.updateCameraTarget();
+        this.rig.snap(this.camTarget);
+      },
+      regime: () => ({ regime: this.plane.space.regime, rocket: this.plane.space.rocket, heat: +this.plane.space.heat.toFixed(2), canopy: this.plane.canopy.closed }),
+      music: () => (this.music ? { theme: this.music.theme, station: this.music.station } : null),
+      /** Pesawat `h` unit di atas landasan Bulan, turun pelan (uji pendaratan). */
+      moonApproach: (h: number, vDown: number) => {
+        this.moon.place(this.sky.sunDir, this.clock.now(), this.plane.position, true);
+        this.gravity.moonCenter = this.moon.moonCenter;
+        const n = this.moon.padNormal;
+        const p = this.moon.pad.clone().addScaledVector(n, h);
+        const fwd = _v.set(0, 1, 0).cross(n);
+        if (fwd.lengthSq() < 1e-6) fwd.set(1, 0, 0);
+        fwd.normalize();
+        this.plane.teleport(p, quatFromUpForward(n.clone(), fwd.clone()), n.clone().multiplyScalar(-vDown).addScaledVector(fwd, 3));
+        this.updateCameraTarget();
+        this.rig.snap(this.camTarget);
+      },
+      /** Masuk atmosfer: ketinggian `alt`, menukik dengan kecepatan `speed`. */
+      reentry: (alt: number, speed: number) => {
+        const up = this.plane.position.clone().normalize();
+        const p = up.clone().multiplyScalar(PLANET_RADIUS + alt);
+        const fwd = _v.set(0, 1, 0).cross(up).normalize();
+        const vel = fwd.clone().multiplyScalar(speed * 0.8).addScaledVector(up, -speed * 0.6);
+        this.plane.teleport(p, quatFromUpForward(up, vel.clone().normalize()), vel);
         this.updateCameraTarget();
         this.rig.snap(this.camTarget);
       },

@@ -3,6 +3,7 @@
  * dekat, deteksi masuk/keluar dengan histeresis, judul besar, stempel paspor, komentar Piko, data radar,
  * dan penanda POI yang terlihat dari jauh.
  */
+import { ZONE_ICONS } from '../../ui/icons';
 import type { Scene } from 'three';
 import { Vector3 } from 'three';
 import { PLANET_RADIUS } from '../../config/world';
@@ -55,7 +56,7 @@ export class ZoneManager {
     zone.init(this.deps);
     this.zones.push(zone);
     this.scene.add(zone.group);
-    const m = poiMarker(zone.icon, zone.color);
+    const m = poiMarker(ZONE_ICONS[zone.id] ?? zone.icon, zone.color);
     m.object.position.copy(zone.poi);
     m.object.renderOrder = 6;
     zone.marker = m;
@@ -116,7 +117,8 @@ export class ZoneManager {
     zoneBanner.set({ id: z.id, title: this.zoneName(z.id), subtitle: first ? tr('zones.firstVisit') : tr('zones.welcomeBack'), n: this.bannerN });
     const key = `zones.piko.${z.id}` as I18nKey;
     const line = tr(key);
-    if (line !== key) bus.emit('piko:say', { text: line, mood: 'wow', priority: 2 });
+    // Menara Kontrol membacakan bio lewat radio ATC (docs/05 bagian 5).
+    if (line !== key) bus.emit('piko:say', { text: line, mood: 'wow', priority: 2, radio: z.id === 'control-tower' });
   }
 
   private exit(z: Zone): void {

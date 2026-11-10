@@ -12,6 +12,7 @@
  */
 import { Color } from 'three';
 import { MeshToonNodeMaterial } from 'three/webgpu';
+import { uSeason, uWet } from './WorldState';
 import {
   abs,
   attribute,
@@ -127,7 +128,8 @@ export function createTerrainMaterial(detail: TerrainDetail): MeshToonNodeMateri
 
   // --- Salju puncak per lintang: tropis hanya puncak tertinggi, makin rendah ke kutub.
   const sinLat = abs(up.y);
-  const snowLine = mix(float(15.6), float(9.6), smoothstep(0.38, 0.86, sinLat));
+  // Musim: belahan yang sedang musim dingin punya garis salju lebih rendah (uSeason dari WorldState).
+  const snowLine = mix(float(15.6), float(9.6), smoothstep(0.38, 0.86, sinLat)).add(up.y.mul(uSeason).mul(2.4));
   const snowK = smoothstep(snowLine.sub(0.7), snowLine.add(0.25), h.add(n1.mul(0.55))).mul(oneMinus(isLake));
   const snowCol = mix(color(C(PALETTE.snow)), color(C('#DCEAFF')), n1.max(0).mul(0.7));
   col = mix(col, snowCol, snowK.max(isSnow.mul(0.85)).max(terrainSnowBoost.mul(oneMinus(isLake))));
@@ -139,6 +141,8 @@ export function createTerrainMaterial(detail: TerrainDetail): MeshToonNodeMateri
   const sandCol = mix(color(C(PALETTE.sand)), color(C('#DDB679')), wet);
   col = mix(col, sandCol, beach);
 
+  // Setelah hujan: permukaan lebih gelap dan sedikit kebiruan (basah).
+  col = mix(col, col.mul(vec3(0.78, 0.83, 0.92)), uWet.mul(0.85));
   m.colorNode = col;
   return m;
 }

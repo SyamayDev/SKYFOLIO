@@ -18,6 +18,9 @@ import { wireUi } from './ui/glue';
 
 wireUi();
 
+// Alat pengembang: dengarkan setiap tema & lapisan musik secara terpisah (docs/05).
+if (location.hash === '#debug-music') void import('./audio/MusicEngine/DebugMusic').then((m) => m.mountDebugMusic());
+
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const uiRoot = document.getElementById('ui') as HTMLElement;
 mount(App, { target: uiRoot });

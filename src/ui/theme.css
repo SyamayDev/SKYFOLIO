@@ -21,6 +21,30 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   color-scheme: light;
+  /* Awal tumpukan tengah-atas (di bawah kompas). */
+  --stack-top: calc(56px + var(--safe-top));
+}
+/* HP portrait: tombol di baris atas, kompas turun ke baris kedua. */
+@media (max-width: 560px) {
+  :root {
+    --stack-top: calc(122px + var(--safe-top));
+  }
+}
+
+/* Tema mengikuti jam lokal pengunjung (Pengaturan → "Tema UI ikut siang-malam"). Lembut supaya teks tetap kontras. */
+:root[data-daypart='dusk'] {
+  --sky-day-top: #6a5acd;
+  --sky-day-horizon: #ffb38a;
+  --panel: rgba(255, 238, 222, 0.88);
+  --panel-strong: rgba(255, 240, 226, 0.97);
+  --shadow: 0 10px 30px rgba(90, 40, 60, 0.28);
+}
+:root[data-daypart='night'] {
+  --sky-day-top: #0f1b4d;
+  --sky-day-horizon: #3a3f8f;
+  --panel: rgba(246, 236, 220, 0.9);
+  --panel-strong: rgba(248, 240, 226, 0.97);
+  --shadow: 0 10px 34px rgba(5, 10, 40, 0.45), 0 0 0 1px rgba(159, 216, 245, 0.18);
 }
 
 * {
@@ -157,6 +181,26 @@ button {
 }
 .p-btn.ghost {
   background: rgba(43, 45, 66, 0.07);
+}
+.p-btn:hover {
+  filter: brightness(1.04);
+}
+.p-btn:active {
+  transform: scale(0.97);
+}
+.p-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Kartu dengan ikon di depan teks. */
+.p-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.p-icon > .icon {
+  margin-top: 2px;
+  color: #2f8fa6;
 }
 .p-btn.sky {
   background: #2f8fa6;

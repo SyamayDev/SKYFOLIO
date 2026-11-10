@@ -18,6 +18,10 @@ export const FLIGHT = {
   // --- Gravitasi
   G0: 14,
   G0_MOON: 3,
+  /** Wewenang rotasi tetap di angkasa (pendorong sikap). */
+  SPACE_AUTHORITY: 0.75,
+  /** Seberapa kuat hidung mengikuti arah gerak di angkasa saat stik dilepas. */
+  SPACE_PROGRADE_GAIN: 0.9,
   MOON_SOI: 350,
 
   // --- Badan
@@ -184,4 +188,32 @@ export const AUTOPILOT = {
   TURN_BLEND_AGL: 10,
   /** Input pemain di atas ini membatalkan autopilot. */
   OVERRIDE_DEADZONE: 0.3,
+};
+
+/** Lapisan langit, kit roket, dan orbit (docs/03 bagian 8–10). Ketinggian = di atas permukaan laut. */
+export const SPACE = {
+  /** Batas lapisan (dengan histeresis ±HYST). */
+  STRATO_ALT: 120,
+  SPACE_ALT: 200,
+  HYST: 6,
+  /** Kit roket keluar di atas ketinggian ini (mesin baling-baling hampir tidak bertenaga di sini). */
+  ROCKET_DEPLOY_ALT: 92,
+  ROCKET_RETRACT_ALT: 78,
+  /** Dorongan roket (unit/dtk²). Boost = roket. Rem = dorongan mundur. */
+  ROCKET_ACCEL: 16,
+  RETRO_ACCEL: 9,
+  /** Kecepatan maksimum dari roket (unit/dtk). Bumi→Bulan ±25 detik. */
+  ROCKET_MAX_SPEED: 95,
+  /** Aerodinamika memudar antara dua ketinggian ini. */
+  AERO_FADE_START: 150,
+  AERO_FADE_END: 205,
+  /** Bantuan orbit: seberapa cepat kecepatan dibawa ke orbit lingkaran (per detik). */
+  ORBIT_ASSIST_RATE: 0.35,
+  /** Masuk atmosfer: panas mulai di bawah ketinggian ini bila kecepatan > HEAT_SPEED. */
+  HEAT_ALT: 210,
+  HEAT_SPEED: 44,
+  /** Pengereman atmosfer saat panas (hambatan ekstra per detik). */
+  HEAT_DRAG: 0.35,
+  /** Pendaratan mulus di Bulan: kecepatan vertikal maksimum. */
+  MOON_SOFT_VSPEED: 4,
 };

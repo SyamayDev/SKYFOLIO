@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
+  import { ZONE_ICONS, drawIcon, type IconName } from './icons';
   /**
    * Peta globe (docs/07 bagian 2): globe ortografis di <canvas> yang bisa diputar (seret), semua zona & landmark,
    * posisi pesawat. Ketuk zona → info + "Antar ke sini" (autopilot).
@@ -14,23 +16,18 @@
   let canvas = $state<HTMLCanvasElement | null>(null);
   let lat0 = $state($planeGeo.lat);
   let lon0 = $state($planeGeo.lon);
-  let selected = $state<{ dest: string; name: string; icon: string } | null>(null);
+  let selected = $state<{ dest: string; name: string; icon: IconName } | null>(null);
   let mask: ImageData | null = null;
   const D = Math.PI / 180;
 
   interface Pt {
     dest: string;
     name: string;
-    icon: string;
+    icon: IconName;
     lat: number;
     lon: number;
     big: boolean;
   }
-  const ZONE_ICON: Record<string, string> = {
-    'home-airport': '🛫', 'control-tower': '🗼', 'post-office': '📮', 'lantern-valley': '🏮', 'project-archipelago': '🏝️', 'skill-peaks': '⛰️',
-    'journey-stream': '🌬️', 'contribution-city': '🏙️', 'hangar-lab': '🌋', 'mc-stage': '🎤', 'aril-kitchen': '🍳', 'gym-island': '🏋️',
-    'fort-village': '🏰', 'block-park': '🧱', 'sky-circuit': '🏁', orbit: '🛰️', moon: '🌙',
-  };
   let points = $derived.by((): Pt[] => {
     const c = $content;
     const out: Pt[] = [];
@@ -38,10 +35,10 @@
       const lat = z.id === 'journey-stream' ? 0 : z.id === 'sky-circuit' ? 7.2 : z.id === 'home-airport' ? 7.2 : z.lat;
       const lon = z.id === 'journey-stream' ? 104 : z.id === 'sky-circuit' ? 98.5 : z.id === 'home-airport' ? 97.7 : z.lon;
       if (lat == null || lon == null) continue;
-      out.push({ dest: `zone:${z.id}`, name: L(z.name, $locale), icon: ZONE_ICON[z.id] ?? '📍', lat, lon, big: true });
+      out.push({ dest: `zone:${z.id}`, name: L(z.name, $locale), icon: ZONE_ICONS[z.id] ?? 'pin', lat, lon, big: true });
     }
-    for (const p of c.projects) if (p.island.lat != null && p.island.lon != null) out.push({ dest: `project:${p.id}`, name: p.title, icon: '🏝️', lat: p.island.lat, lon: p.island.lon, big: false });
-    for (const l of c.landmarks.landmarks) out.push({ dest: `landmark:${l.id}`, name: L(l.name, $locale), icon: $progress.stamps[`landmark:${l.id}`] ? '📸' : '•', lat: l.lat, lon: l.lon, big: false });
+    for (const p of c.projects) if (p.island.lat != null && p.island.lon != null) out.push({ dest: `project:${p.id}`, name: p.title, icon: 'island', lat: p.island.lat, lon: p.island.lon, big: false });
+    for (const l of c.landmarks.landmarks) out.push({ dest: `landmark:${l.id}`, name: L(l.name, $locale), icon: $progress.stamps[`landmark:${l.id}`] ? 'camera' : 'pin', lat: l.lat, lon: l.lon, big: false });
     return out;
   });
 
@@ -110,8 +107,13 @@
     for (const pt of points) {
       const p = project(pt.lat, pt.lon, r, cx, cy);
       if (!p.front) continue;
-      g.font = `${pt.big ? 22 : 14}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
-      g.fillText(pt.icon, p.x, p.y);
+      // Lencana bulat + ikon vektor (sama di semua perangkat, tidak bergantung font emoji).
+      const rad = pt.big ? 13 : pt.icon === 'pin' ? 4 : 9;
+      g.fillStyle = pt.big ? '#FFF6E6' : pt.icon === 'island' ? '#FFC93C' : pt.icon === 'camera' ? '#3DCB7A' : '#FFFFFF';
+      g.beginPath();
+      g.arc(p.x, p.y, rad, 0, Math.PI * 2);
+      g.fill();
+      if (pt.big || pt.icon !== 'pin') drawIcon(g, pt.icon, p.x, p.y, pt.big ? 17 : 12, '#2B2D42');
       if (selected?.dest === pt.dest) {
         g.strokeStyle = '#FFC93C';
         g.lineWidth = 3;
@@ -204,13 +206,13 @@
 <p class="p-muted">{$t('map.hint')}</p>
 <ul class="quick">
   {#each $content.zones.zones as z (z.id)}
-    <li><button class="p-btn ghost" class:on={selected?.dest === `zone:${z.id}`} onclick={() => (selected = { dest: `zone:${z.id}`, name: L(z.name, $locale), icon: ZONE_ICON[z.id] ?? '📍' })} data-testid="map-zone-{z.id}">{ZONE_ICON[z.id]} {L(z.name, $locale)}</button></li>
+    <li><button class="p-btn ghost" class:on={selected?.dest === `zone:${z.id}`} onclick={() => (selected = { dest: `zone:${z.id}`, name: L(z.name, $locale), icon: ZONE_ICONS[z.id] ?? 'pin' })} data-testid="map-zone-{z.id}"><Icon name={ZONE_ICONS[z.id] ?? 'pin'} size={18} /> <span>{L(z.name, $locale)}</span></button></li>
   {/each}
 </ul>
 {#if selected}
   <div class="sel p-card" role="status">
-    <b>{selected.icon} {selected.name}</b>
-    <button class="p-btn" onclick={fly} data-testid="fly-here">🧭 {$t('map.flyHere')}</button>
+    <b class="selname"><Icon name={selected.icon} size={20} /> {selected.name}</b>
+    <button class="p-btn" onclick={fly} data-testid="fly-here"><Icon name="compass" size={18} /> {$t('map.flyHere')}</button>
   </div>
 {/if}
 
@@ -234,7 +236,11 @@
   .quick .p-btn {
     min-height: 40px;
     font-size: 13px;
-    padding: 6px 10px;
+    padding: 6px 12px 6px 8px;
+    gap: 6px;
+  }
+  .quick .p-btn :global(.icon) {
+    color: #2f8fa6;
   }
   .quick .on {
     background: var(--sun);
@@ -246,6 +252,13 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
     box-shadow: var(--shadow);
+  }
+  .selname {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
   }
 </style>

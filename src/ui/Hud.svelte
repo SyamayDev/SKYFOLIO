@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import { hud, inputDevice, paused } from '../core/AppState';
   import { reducedMotionActive, settings, updateSettings } from '../core/Settings';
   import { isDebugEnabled } from '../core/Debug';
@@ -15,7 +16,7 @@
   const debug = isDebugEnabled();
   let compassOffset = $derived(-($hud.heading / 360) * 720);
   let speedLines = $derived(
-    $hud.speed > 220 && $settings.camera.speedLines && !reducedMotionActive($settings),
+    $hud.speed > 220 && $hud.regime !== 'space' && $hud.regime !== 'moon' && $settings.camera.speedLines && !reducedMotionActive($settings),
   );
   let touch = $derived($inputDevice === 'touch');
 
@@ -52,14 +53,10 @@
   </div>
 
   <div class="buttons">
-    <button class="round" onclick={() => openPanel('map')} aria-label={$t('hud.map')} title={$t('hud.map')} data-testid="open-map">🗺️</button>
-    <button class="round" onclick={() => openPanel('passport')} aria-label={$t('hud.passport')} title={$t('hud.passport')} data-testid="open-passport">🛂</button>
-    <button class="round" onclick={toggleCamera} aria-label={$t('hud.camera')} title={$t('hud.camera')}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2h6l2 2h3v11H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="2" /></svg>
-    </button>
-    <button class="round" onclick={togglePause} aria-label={$t('hud.pause')} title={$t('hud.pause')} data-testid="pause">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor" /><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor" /></svg>
-    </button>
+    <button class="round" onclick={() => openPanel('map')} aria-label={$t('hud.map')} title={$t('hud.map')} data-testid="open-map"><Icon name="map" size={24} /></button>
+    <button class="round" onclick={() => openPanel('passport')} aria-label={$t('hud.passport')} title={$t('hud.passport')} data-testid="open-passport"><Icon name="passport" size={24} /></button>
+    <button class="round" onclick={toggleCamera} aria-label={$t('hud.camera')} title={$t('hud.camera')}><Icon name="camera" size={24} /></button>
+    <button class="round" onclick={togglePause} aria-label={$t('hud.pause')} title={$t('hud.pause')} data-testid="pause"><Icon name="pause" size={24} /></button>
   </div>
 
   <div class="gauges">
@@ -172,10 +169,7 @@
     width: 56px;
     height: 56px;
   }
-  .round svg {
-    width: 24px;
-    height: 24px;
-  }
+
   .round:active {
     transform: scale(0.94);
   }
@@ -187,9 +181,11 @@
     gap: 10px;
     align-items: stretch;
   }
+  /* Sentuh: meter di tengah bawah, di antara joystick (kiri) dan tombol (kanan). */
   .touch .gauges {
-    bottom: auto;
-    top: calc(10px + var(--safe-top));
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(12px + var(--safe-bottom));
   }
   .gauge {
     background: var(--panel);
@@ -246,7 +242,7 @@
   }
   .stall {
     position: absolute;
-    top: calc(60px + var(--safe-top));
+    top: 28%;
     left: 50%;
     transform: translateX(-50%);
     background: var(--berry);
@@ -286,10 +282,26 @@
       transform: rotate(7deg);
     }
   }
+  /* HP portrait: tombol di baris atas (lebih kecil), kompas di baris kedua di kanan radar. */
   @media (max-width: 560px) {
     .compass {
-      top: calc(76px + var(--safe-top));
-      width: 64vw;
+      top: calc(66px + var(--safe-top));
+      width: calc(100vw - 236px);
+      min-width: 140px;
+      left: calc(50% + 50px);
+    }
+    .buttons {
+      gap: 8px;
+      right: calc(10px + var(--safe-right));
+    }
+    .round,
+    .touch .round {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+    }
+    .touch .gauges {
+      bottom: calc(238px + var(--safe-bottom));
     }
   }
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import { appPhase, preflight } from '../core/AppState';
   import type { PreflightItemId } from '../core/EventBus';
   import { updateSettings } from '../core/Settings';
@@ -95,7 +96,7 @@
         <ul>
           {#each items as id (id)}
             <li class:done={$preflight[id]}>
-              <span class="box" aria-hidden="true">{$preflight[id] ? '✓' : ''}</span>
+              <span class="box" aria-hidden="true">{#if $preflight[id]}<Icon name="check" size={14} />{/if}</span>
               <span>{$t(`preflight.items.${id}`)}</span>
               <span class="sr-only">{$preflight[id] ? '✓' : '…'}</span>
             </li>
@@ -104,7 +105,7 @@
         <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax={items.length} aria-valuenow={doneCount}>
           <div class="fill" style:width={`${(doneCount / items.length) * 100}%`}></div>
         </div>
-        {#key factIdx}<p class="fact">✨ {facts[factIdx % facts.length]}</p>{/key}
+        {#key factIdx}<p class="fact"><Icon name="sparkle" size={16} /> {facts[factIdx % facts.length]}</p>{/key}
       </section>
     {:else}
       <section class="pass" aria-label={$t('boarding.title')}>
@@ -139,9 +140,9 @@
       {ready ? $t('preflight.board') : $t('preflight.loading')}
     </button>
     {#if ready}
-      <button class="recruiter" disabled={boarding} onclick={() => board(true)} data-testid="recruiter">🎬 {$t('boarding.recruiter')}</button>
+      <button class="recruiter" disabled={boarding} onclick={() => board(true)} data-testid="recruiter"><Icon name="clapper" size={18} /> {$t('boarding.recruiter')}</button>
     {/if}
-    <p class="hint">🔊 {$t('preflight.hint')}</p>
+    <p class="hint"><Icon name="sound" size={16} /> {$t('preflight.hint')}</p>
   </main>
 </div>
 
@@ -306,6 +307,9 @@
     transition: width 0.3s ease;
   }
   .fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
     font-size: 15px;
     min-height: 44px;
     margin: 10px 0 0;
@@ -417,11 +421,20 @@
     background: #fff;
     font: 600 16px var(--font-title);
     color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
   }
   .hint {
     font-size: 14px;
     color: var(--panel-ink);
     margin: 10px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
   @media (max-height: 560px) {
     .plane {

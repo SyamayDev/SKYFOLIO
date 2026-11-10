@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
+  import { ZONE_ICONS } from './icons';
   /** Paspor (docs/09 bagian 1): satu halaman per wilayah, stempel unik per zona & landmark (dicap tangan). */
   import { content, L } from '../content';
   import { progress, progressPersistent } from '../game/Progress';
@@ -25,7 +27,7 @@
       {#each zones as z (z.id)}
         {@const s = stamps[z.id]}
         <div class="stamp" class:got={!!s} style:--c={stampColor(z.id)} style:--r={`${s?.rot ?? 0}deg`} title={L(z.name, $locale)}>
-          <span class="ring">{s ? '★' : '?'}</span>
+          <span class="ring">{#if s}<Icon name={ZONE_ICONS[z.id] ?? 'star'} size={24} />{:else}?{/if}</span>
           <span class="name">{L(z.name, $locale)}</span>
           {#if s}<span class="date">{fmt.format(new Date(s.date))}</span>{/if}
         </div>
@@ -33,7 +35,7 @@
       {#each lms as l (l.id)}
         {@const s = stamps[`landmark:${l.id}`]}
         <div class="stamp small" class:got={!!s} style:--c={stampColor(l.id)} style:--r={`${s?.rot ?? 0}deg`} title={L(l.name, $locale)}>
-          <span class="ring">{s ? '📸' : '?'}</span>
+          <span class="ring">{#if s}<Icon name="camera" size={18} />{:else}?{/if}</span>
           <span class="name">{L(l.name, $locale)}</span>
         </div>
       {/each}

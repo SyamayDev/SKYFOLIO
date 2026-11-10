@@ -1,6 +1,6 @@
 /**
  * Efek suara sintetis sementara (docs/05 bagian 3). Setiap bunyi diberi variasi pitch acak ±6%.
- * Sampel CC0 yang lebih kaya menyusul di Fase 2.
+ * Semua bunyi disintesis (tanpa file audio), jadi muatan awal tetap kecil.
  */
 import { AUDIO } from '../config/audio';
 import type { SurfaceMaterial } from '../physics/PhysicsWorld';
@@ -196,6 +196,75 @@ export class Sfx {
   click(): void {
     if (!this.canPlay()) return;
     this.tone('sine', 1250, 900, 0.08, 0.002, 0.05, this.uiBus);
+  }
+
+  /** Kanopi "whirr-klak". */
+  canopy(closing: boolean): void {
+    if (!this.canPlay()) return;
+    const [a, b] = closing ? [380, 620] : [620, 380];
+    this.tone('sawtooth', a, b, 0.035, 0.05, 0.6);
+    this.noiseBurst(1600, 'bandpass', 0.05, 0.6, this.bus, 3);
+    this.tone('square', 220, 160, 0.09, 0.003, 0.07, this.bus, 0.65);
+    this.noiseBurst(2600, 'bandpass', 0.12, 0.06, this.bus, 4);
+  }
+
+  /** Sapuan wiper karet. */
+  wiper(): void {
+    if (!this.canPlay()) return;
+    this.noiseBurst(2100, 'bandpass', 0.035, 0.28, this.bus, 5);
+  }
+
+  /** Kit roket keluar "klik-whirr" lalu menyala. */
+  rocketDeploy(): void {
+    if (!this.canPlay()) return;
+    this.tone('square', 900, 900, 0.06, 0.002, 0.04);
+    this.tone('square', 1200, 1200, 0.05, 0.002, 0.04, this.bus, 0.08);
+    this.tone('sawtooth', 200, 700, 0.05, 0.1, 0.5, this.bus, 0.12);
+  }
+
+  /** Guntur: retakan tajam lalu gemuruh panjang (kekuatan 0..1). */
+  thunder(strength: number): void {
+    if (!this.canPlay()) return;
+    const s = clamp(strength, 0.1, 1);
+    if (s > 0.6) this.noiseBurst(3000, 'highpass', 0.25 * s, 0.18);
+    const t = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noise;
+    src.loop = true;
+    src.playbackRate.value = 0.5;
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(380 * s + 120, t);
+    f.frequency.exponentialRampToValueAtTime(70, t + 3);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.7 * s, t + 0.08);
+    // Gemuruh bergelombang.
+    g.gain.setTargetAtTime(0.35 * s, t + 0.4, 0.3);
+    g.gain.setTargetAtTime(0.5 * s, t + 1.1, 0.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 3.4);
+    src.connect(f).connect(g).connect(this.bus);
+    src.start(t, Math.random());
+    this.track(src, t + 3.5);
+  }
+
+  /** Stempel paspor "dok". */
+  stamp(): void {
+    if (!this.canPlay()) return;
+    this.tone('sine', 160, 70, 0.4, 0.003, 0.14, this.uiBus);
+    this.noiseBurst(900, 'lowpass', 0.25, 0.08, this.uiBus);
+  }
+
+  /** Buka/tutup panel UI. */
+  panel(open: boolean): void {
+    if (!this.canPlay()) return;
+    this.tone('sine', open ? 620 : 760, open ? 900 : 520, 0.06, 0.004, 0.09, this.uiBus);
+  }
+
+  /** Lonceng lembut (tiba di Bulan, momen haru). */
+  chime(): void {
+    if (!this.canPlay()) return;
+    [0, 4, 7, 12].forEach((st, i) => this.tone('sine', 660 * Math.pow(2, st / 12), 660 * Math.pow(2, st / 12), 0.09, 0.01, 1.6, this.bus, i * 0.12));
   }
 
   /** Starter mesin: tersendat lalu hidup. */

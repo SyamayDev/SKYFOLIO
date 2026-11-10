@@ -16,6 +16,8 @@ import { FlightModel, type FlightEnv, type FlightInput } from './FlightModel';
 import { GroundMode } from './GroundMode';
 import { PlaneModel } from './PlaneModel';
 import { createPlaneBody } from './PlaneBody';
+import { Canopy } from './Canopy';
+import { SpaceFlight } from './SpaceFlight';
 import { WaterMode } from './WaterMode';
 
 export interface SpawnPoint {
@@ -39,6 +41,13 @@ export class Plane {
   readonly flight = new FlightModel();
   readonly ground: GroundMode;
   readonly water = new WaterMode();
+  /** Lapisan langit, kit roket, orbit, masuk atmosfer (docs/03 bagian 8–10). */
+  readonly space = new SpaceFlight();
+  readonly canopy: Canopy;
+  /** Pusat benda langit yang sedang menarik pesawat (Bumi/Bulan) dan radius permukaannya. */
+  readonly gravityCenter = new Vector3();
+  surfaceRadius = PLANET_RADIUS;
+  onMoon = false;
   readonly input: FlightInput = { pitch: 0, roll: 0, yaw: 0, gas: 0, boost: false, brake: false };
   readonly env: FlightEnv = {
     grounded: true,
@@ -105,6 +114,12 @@ export class Plane {
     this.piko = new CopilotPiko(material);
     this.model.pilotSeat.add(this.aril.root);
     this.model.copilotSeat.add(this.piko.root);
+    this.canopy = new Canopy(
+      material,
+      this.model.pilotSeat.position.clone().add(new Vector3(0, 0.56, 0.02)),
+      this.model.copilotSeat.position.clone().add(new Vector3(0, 0.5, 0.02)),
+    );
+    this.model.root.add(this.canopy.group);
     this.synced = physics.addSynced(this.body, this.model.root);
     this.ground = new GroundMode(physics);
 
@@ -171,13 +186,26 @@ export class Plane {
     const b = this.body;
     // Rem parkir otomatis: pesawat diam di landasan sampai pemain menekan gas.
     const parking = this.input.gas < 0.05 && !this.input.boost && this.flight.state.speed < 3;
+    {
+      const t = b.translation();
+      _v.set(t.x, t.y, t.z);
+      this.surfaceRadius = this.gravity.centerFor(_v, this.gravityCenter);
+      this.onMoon = this.surfaceRadius !== PLANET_RADIUS;
+      this.ground.center.copy(this.gravityCenter);
+      this.ground.gScale = this.onMoon ? FLIGHT.G0_MOON / FLIGHT.G0 : 1;
+    }
     this.ground.step(b, this.input.brake, dt, parking);
     this.water.step(b, dt);
     this.env.grounded = this.ground.grounded;
     this.env.inWater = this.water.inWater && !this.ground.grounded;
     // Tinggi di atas permukaan: tanah (raycast) atau air (permukaan laut), mana yang lebih dekat.
     this.env.heightAboveGround = Math.min(this.ground.heightAboveGround, Math.max(0, this.altitude));
-    this.env.wind.copy(_wind);
+    this.space.preStep(b, this.gravityCenter, this.surfaceRadius, this.ground.grounded, this.env.inWater, this.onMoon);
+    this.env.center = this.gravityCenter;
+    this.env.surfaceRadius = this.surfaceRadius;
+    this.env.aero = this.space.aero;
+    this.env.space = this.space.inSpace;
+    this.env.wind.copy(_wind).multiplyScalar(this.space.aero);
     if (this.ground.grounded && this.headingHint) {
       const t = b.translation();
       const r = b.rotation();
@@ -195,6 +223,7 @@ export class Plane {
       return;
     }
     this.flight.step(b, this.input, this.env, dt);
+    this.space.step(b, this.input, this.env.assist !== 'off', this.gravityCenter, this.surfaceRadius, this.ground.grounded, this.onMoon, dt);
 
     // Lompat (darat) atau barrel roll (udara).
     this.jumpCooldown = Math.max(0, this.jumpCooldown - dt);
@@ -378,6 +407,7 @@ export class Plane {
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     this.flight.reset();
     this.ground.reset();
+    this.space.reset();
     this.upsideDownTime = this.stuckTime = 0;
     this.righting = 0;
     this.airborneTime = 0;
@@ -395,6 +425,7 @@ export class Plane {
     const target = this.engineRunning ? 14 + s.throttle * 60 + s.airspeed * 0.25 : 0;
     this.propAngle = damp(this.propAngle, target, 2.5, dt);
     this.model.animate(dt, this.propAngle, this.input, this.propBent > 0 ? 1 : 0, nightLights, this.time);
+    this.model.setSpaceFx(this.space.rocket, this.space.thrust, this.space.heat);
     // Roda: kaki memendek sesuai kompresi, roda berputar.
     this.ground.wheels.forEach((w, i) => {
       const vis = this.model.wheels[i];
@@ -425,14 +456,21 @@ export class Plane {
     return this.synced.object!.quaternion;
   }
 
+  /** Ketinggian di atas permukaan benda langit terdekat (Bumi atau Bulan) — untuk HUD. */
+  get surfaceAltitude(): number {
+    const t = this.body.translation();
+    return Math.hypot(t.x - this.gravityCenter.x, t.y - this.gravityCenter.y, t.z - this.gravityCenter.z) - this.surfaceRadius;
+  }
+
   get altitude(): number {
     const t = this.body.translation();
     return Math.hypot(t.x, t.y, t.z) - PLANET_RADIUS;
   }
 
+  /** "Atas" lokal: menjauhi pusat benda langit yang menarik (Bumi, atau Bulan saat di dekatnya). */
   upVector(out: Vector3): Vector3 {
     const t = this.body.translation();
-    return out.set(t.x, t.y, t.z).normalize();
+    return out.set(t.x, t.y, t.z).sub(this.gravityCenter).normalize();
   }
 
   bodyUp(out: Vector3): Vector3 {

@@ -3,6 +3,7 @@
    * Wadah semua panel (docs/07 bagian 2 & 4): bottom sheet di HP (bisa ditarik 50%/90%), panel samping di
    * desktop. Fokus terjebak di dalam panel, Esc menutup. Di HP pesawat otomatis melayang selama membaca.
    */
+  import Icon from './Icon.svelte';
   import { inputDevice, isPortrait, panel } from '../core/AppState';
   import { t } from '../i18n';
   import { actions } from './bridge';
@@ -100,7 +101,7 @@
     {#if sheet}
       <div class="handle" role="presentation" onpointerdown={dragStart} onpointermove={dragMove} onpointerup={dragEnd} onpointercancel={dragEnd}><span></span></div>
     {/if}
-    <button class="close" onclick={close} aria-label={$t('common.close')} data-testid="panel-close">✕</button>
+    <button class="close" onclick={close} aria-label={$t('common.close')} data-testid="panel-close"><Icon name="close" size={20} /></button>
     <div class="body">
       {#if $panel.kind === 'zone'}<PanelZone id={$panel.id ?? ''} />
       {:else if $panel.kind === 'project'}<PanelProject id={$panel.id ?? ''} />
@@ -117,12 +118,14 @@
 <style>
   .scrim {
     position: fixed;
+    z-index: 10;
     inset: 0;
     background: rgba(43, 45, 66, 0.18);
     pointer-events: auto;
   }
   .panel {
     position: fixed;
+    z-index: 11;
     top: calc(12px + var(--safe-top));
     right: calc(12px + var(--safe-right));
     bottom: calc(12px + var(--safe-bottom));
@@ -187,7 +190,9 @@
     border-radius: 50%;
     border: 0;
     background: rgba(43, 45, 66, 0.08);
-    font-size: 18px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
     color: var(--ink);
     z-index: 2;
   }

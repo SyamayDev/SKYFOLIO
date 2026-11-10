@@ -1,12 +1,14 @@
 /**
  * Kota sederhana (docs/02 bagian 2.5, versi awal): gedung low-poly instanced dari buildings.bin.
- * Jendela menyala dan lampu atap datang di Fase 2.
+ * Malam hari sebagian jendela menyala hangat (uNight dari WorldState).
  */
 import { Color, Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { PALETTE } from '../config/palette';
 import { quatFromUpForward } from '../utils/quat';
 import { Kit, box } from '../utils/modeling/Kit';
+import { attribute, color, float, fract, hash, instanceIndex, positionGeometry, smoothstep, step, vec3 } from 'three/tsl';
 import { createToonMaterial } from '../utils/modeling/materials';
+import { uNight } from './WorldState';
 import { BUILDING_RECORD_BYTES } from './EarthFormat';
 
 const CITY_COLORS = [PALETTE.city1, PALETTE.city2, PALETTE.city3, PALETTE.city4, PALETTE.city5];
@@ -32,6 +34,19 @@ export class Cities {
     const geo = k.build();
 
     const mat = createToonMaterial();
+    // Jendela menyala saat malam (docs/04 bagian 6.3): pita jendela dikenali dari warna verteksnya yang gelap,
+    // dan hanya sebagian gedung yang lampunya menyala (acak per instans, tetap sama setiap malam).
+    const vc = attribute('color', 'vec3');
+    // Kisi jendela kecil di pita jendela (koordinat geometri gedung satuan).
+    const gp = positionGeometry;
+    const gx = fract(gp.x.add(gp.z).mul(4.5));
+    const gy = fract(gp.y.mul(9));
+    const grid = step(0.22, gx).mul(step(gx, 0.72)).mul(step(0.25, gy)).mul(step(gy, 0.75));
+    const windowMask = smoothstep(0.6, 0.45, vc.x).mul(grid);
+    const lit = smoothstep(0.25, 0.35, hash(instanceIndex.add(7)));
+    const warm = vec3(1.0, 0.78, 0.42).mul(hash(instanceIndex).mul(0.5).add(0.75));
+    const base = (mat.emissiveNode ?? color(0x000000)) as ReturnType<typeof vec3>;
+    mat.emissiveNode = base.add(warm.mul(windowMask).mul(lit).mul(uNight).mul(float(1.7)));
     this.mesh = new InstancedMesh(geo, mat, Math.max(1, n));
     this.mesh.name = 'buildings';
     this.mesh.receiveShadow = true;

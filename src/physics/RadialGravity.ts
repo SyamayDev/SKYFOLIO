@@ -34,6 +34,19 @@ export class RadialGravity {
     return out.copy(pos).multiplyScalar(-g / r);
   }
 
+  /**
+   * Benda langit yang menarik di `pos`: menulis pusatnya ke `outCenter`, mengembalikan radius permukaannya.
+   * Dipakai supaya "atas", ketinggian, dan roda mengikuti Bulan saat berada di wilayah gravitasinya.
+   */
+  centerFor(pos: Vector3, outCenter: Vector3): number {
+    if (this.moonCenter && pos.distanceTo(this.moonCenter) < FLIGHT.MOON_SOI) {
+      outCenter.copy(this.moonCenter);
+      return MOON_RADIUS;
+    }
+    outCenter.set(0, 0, 0);
+    return PLANET_RADIUS;
+  }
+
   add(body: RAPIER.RigidBody): void {
     this.bodies.add(body);
   }

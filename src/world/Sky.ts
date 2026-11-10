@@ -7,7 +7,8 @@
  */
 import { BackSide, Color, DirectionalLight, Fog, HemisphereLight, Mesh, SphereGeometry, Vector3, type Scene } from 'three';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
-import { clamp, dot, float, max, mix, normalize, positionWorld, cameraPosition, pow, smoothstep, uniform, vec3 } from 'three/tsl';
+import { clamp, dot, float, max, mix, mx_cell_noise_float, normalize, positionWorld, cameraPosition, pow, sin, smoothstep, step, time, uniform, vec3 } from 'three/tsl';
+import { uFlash, uNight } from './WorldState';
 import { PALETTE } from '../config/palette';
 import { PLANET_RADIUS, SPACE_START } from '../config/world';
 import { smoothstep as sstep } from '../utils/math';
@@ -30,6 +31,9 @@ export class Sky {
   private readonly uHorizon = uniform(new Color(PALETTE.skyDayHorizon));
   private readonly uSunColor = uniform(new Color('#FFF1C4'));
   private readonly uSpace = uniform(0);
+  private readonly uStars = uniform(0);
+  /** Kecerahan cahaya matahari dasar (redup saat badai/mendung). */
+  sunDim = 1;
 
   private readonly palette = {
     dayTop: C(PALETTE.skyDayTop),
@@ -63,9 +67,17 @@ export class Sky {
     col = col.add(this.uSunColor.mul(glow));
     // Menuju angkasa: biru pekat dulu (stratosfer), lalu biru malam angkasa.
     const deepBlue = vec3(0.03, 0.16, 0.55);
-    const spaceCol = vec3(0.012, 0.022, 0.08).add(this.uSunColor.mul(pow(s, float(1400)).mul(4)));
+    // Nilai linear (output sRGB menerangkannya): hampir hitam kebiruan.
+    const spaceCol = vec3(0.0025, 0.0045, 0.016).add(this.uSunColor.mul(pow(s, float(1400)).mul(4)));
     const toDeep = mix(col, deepBlue, smoothstep(0.0, 0.5, this.uSpace).mul(dot(dir, this.uUp).max(0).mul(0.6).add(0.4)));
-    mat.colorNode = mix(toDeep, spaceCol, smoothstep(0.45, 1.0, this.uSpace));
+    let skyCol = mix(toDeep, spaceCol, smoothstep(0.45, 1.0, this.uSpace));
+    // Bintang: sel noise di arah pandang → titik-titik terang yang berkelip; muncul saat malam dan di angkasa.
+    const cell = mx_cell_noise_float(dir.mul(260));
+    const star = step(0.9965, cell).mul(sin(time.mul(cell.mul(9).add(1.5)).add(cell.mul(80))).mul(0.35).add(0.65));
+    const starK = max(this.uStars, this.uSpace).mul(smoothstep(-0.05, 0.12, h).max(this.uSpace));
+    skyCol = skyCol.add(vec3(1.0, 0.97, 0.9).mul(star).mul(starK).mul(1.6));
+    // Kilat petir menerangi seluruh langit sesaat.
+    mat.colorNode = skyCol.add(vec3(0.75, 0.8, 1.0).mul(uFlash).mul(0.85));
     this.dome = new Mesh(new SphereGeometry(5200, 32, 16), mat);
     this.dome.renderOrder = -10;
     this.dome.frustumCulled = false;
@@ -151,11 +163,15 @@ export class Sky {
     this.hemi.position.copy(this.up);
     this.hemi.color.copy(this.top).lerp(this.tmpC.set('#ffffff'), 0.55);
     this.hemi.groundColor.set('#6FA85A').lerp(this.tmpC.set('#24305E'), nightK);
-    this.hemi.intensity = 1.35 - nightK * 0.75;
+    this.hemi.intensity = (1.35 - nightK * 0.75) * (0.75 + 0.25 * this.sunDim) + uFlash.value * 2.2;
+    this.uStars.value = nightK;
+    uNight.value = nightK;
     rimColor.value.copy(this.horizon);
 
     // Matahari: sedikit oranye saat rendah.
     this.sun.color.set('#FFF4E0').lerp(this.tmpC.set('#FFB27A'), (1 - dayK) * 0.6);
+    // Matahari di bawah horizon tidak boleh menerangi dari bawah planet.
+    this.sun.intensity = 2.7 * sstep(-0.1, 0.06, e) * this.sunDim;
     this.sun.position.copy(shadowTarget).addScaledVector(this.sunDir, 100);
     this.sun.target.position.copy(shadowTarget);
     this.sun.target.updateMatrixWorld();

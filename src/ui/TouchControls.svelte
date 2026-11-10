@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import { hud, isPortrait } from '../core/AppState';
   import { touchState } from '../core/Input';
   import { settings } from '../core/Settings';
@@ -147,7 +148,7 @@
       onpointerdown={(e) => {
         e.stopPropagation();
         press('horn');
-      }}>📯</button
+      }}><Icon name="horn" size={24} /></button
     >
     <button
       class="btn action"
@@ -182,7 +183,7 @@
       onpointerup={() => hold('boost', false)}
       onpointercancel={() => hold('boost', false)}
       onpointerleave={() => hold('boost', false)}
-      data-testid="btn-boost">{$t('hud.boost')}</button
+      data-testid="btn-boost"><Icon name={$hud.rocket ? 'rocket' : 'boost'} size={20} /><span>{$t('hud.boost')}</span></button
     >
   </div>
 </div>

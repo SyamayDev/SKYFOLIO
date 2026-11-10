@@ -1,18 +1,20 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import { inputDevice, tutorialStep } from '../core/AppState';
   import { t } from '../i18n';
   import { actions } from './bridge';
 
+  let { inStack = false }: { inStack?: boolean } = $props();
   let step = $derived($tutorialStep);
   let device = $derived($inputDevice);
 </script>
 
 {#if step !== 'done'}
   {#key step + device}
-    <div class="tutorial" class:touch={device === 'touch'} role="status" data-testid="tutorial">
-      <span class="icon" aria-hidden="true">{device === 'touch' ? '👆' : device === 'gamepad' ? '🎮' : '⌨️'}</span>
+    <div class="tutorial" class:stacked={inStack} role="status" data-testid="tutorial">
+      <span class="icon" aria-hidden="true"><Icon name={device === 'touch' ? 'tap' : device === 'gamepad' ? 'gamepad' : 'keyboard'} size={24} /></span>
       <p>{$t(`tutorial.${device}.${step}`)}</p>
-      <button class="skip" onclick={() => actions.skipTutorial()} aria-label={$t('tutorial.skip')}>✕</button>
+      <button class="skip" onclick={() => actions.skipTutorial()} aria-label={$t('tutorial.skip')}><Icon name="close" size={16} /></button>
     </div>
   {/key}
 {/if}
@@ -34,23 +36,23 @@
     animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
     pointer-events: auto;
   }
-  .tutorial.touch {
-    top: calc(118px + var(--safe-top));
-    bottom: auto;
-    width: min(440px, calc(100vw - 32px));
+  /* Di dalam TopStack (layar sentuh/sempit): ikut alur kolom, bukan fixed. */
+  .tutorial.stacked {
+    position: static;
+    transform: none;
+    width: 100%;
+    animation-name: popin;
   }
-  /* Layar sempit: naik di atas indikator kecepatan/ketinggian supaya tidak bertumpuk. */
+  /* Layar lebar di bawah 1100 px: naik di atas meter kecepatan/ketinggian. */
   @media (max-width: 1100px) {
-    .tutorial:not(.touch) {
+    .tutorial:not(.stacked) {
       bottom: calc(86px + var(--safe-bottom));
     }
   }
-  /* Layar pendek (HP landscape): pindah ke atas. */
-  @media (max-height: 560px) {
-    .tutorial,
-    .tutorial:not(.touch) {
-      top: calc(58px + var(--safe-top));
-      bottom: auto;
+  @keyframes popin {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
     }
   }
   @keyframes pop {
@@ -60,7 +62,14 @@
     }
   }
   .icon {
-    font-size: 22px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(47, 143, 166, 0.12);
+    color: #2f8fa6;
+    flex: none;
   }
   p {
     margin: 0;
@@ -74,7 +83,9 @@
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    font-size: 16px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
     color: var(--panel-ink);
   }
   .skip:hover {

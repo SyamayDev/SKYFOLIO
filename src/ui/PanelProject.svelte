@@ -1,5 +1,6 @@
 <script lang="ts">
   /** Panel proyek penuh (docs/07 bagian 2): galeri geser, cerita, tech chips, peran, tahun, tautan. */
+  import Icon from './Icon.svelte';
   import { content, L } from '../content';
   import { panel } from '../core/AppState';
   import { bus } from '../core/EventBus';
@@ -33,7 +34,7 @@
   {:else}
     <div class="cover" aria-hidden="true">{p.title.split(/[\s-]+/).map((w) => w[0]).join('').slice(0, 3)}</div>
   {/if}
-  <p class="p-kicker">{p.featured ? `★ ${$t('zones.island.featured')} #${p.featuredRank ?? ''}` : $t('panels.project')}</p>
+  <p class="p-kicker">{#if p.featured}<Icon name="star" size={13} /> {$t('zones.island.featured')} #{p.featuredRank ?? ''}{:else}{$t('panels.project')}{/if}</p>
   <h2 class="p-title" data-testid="project-title">{p.title}</h2>
   {#if p.fullTitle}<p class="p-sub">{L(p.fullTitle, $locale)}</p>{/if}
   <p class="p-text"><b>{L(p.summary, $locale)}</b></p>
@@ -45,15 +46,15 @@
   </dl>
   {#if p.tech.length}<ul class="p-chips">{#each p.tech as tech (tech)}<li>{tech}</li>{/each}</ul>{/if}
   <div class="p-row">
-    {#if p.links.demo}<button class="p-btn" onclick={() => link(p.links.demo!, `${p.title} · ${$t('panels.demo')}`)}>🚀 {$t('panels.demo')}</button>{/if}
-    {#if p.links.repo}<button class="p-btn ghost" onclick={() => link(p.links.repo!, `${p.title} · ${$t('panels.repo')}`)}>💻 {$t('panels.repo')}</button>{/if}
-    <button class="p-btn ghost" onclick={() => actions.flyTo(`project:${p.id}`)}>🧭 {$t('map.flyHere')}</button>
+    {#if p.links.demo}<button class="p-btn" onclick={() => link(p.links.demo!, `${p.title} · ${$t('panels.demo')}`)}><Icon name="rocket" size={18} /> {$t('panels.demo')}</button>{/if}
+    {#if p.links.repo}<button class="p-btn ghost" onclick={() => link(p.links.repo!, `${p.title} · ${$t('panels.repo')}`)}><Icon name="code" size={18} /> {$t('panels.repo')}</button>{/if}
+    <button class="p-btn ghost" onclick={() => actions.flyTo(`project:${p.id}`)}><Icon name="compass" size={18} /> {$t('map.flyHere')}</button>
   </div>
   <!-- Cerita dibuat dari markdown konten oleh konverter aman (semua teks di-escape, URL hanya http/mailto). -->
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   <div class="p-text story">{@html p.story[$locale] || p.story.id || p.story.en}</div>
   {#if p.minigame}
-    <p class="p-card">🎮 <b>{p.minigame.title}</b> — {L(p.minigame.description, $locale)}</p>
+    <p class="p-card p-icon"><Icon name="gamepad" size={18} /> <span><b>{p.minigame.title}</b> — {L(p.minigame.description, $locale)}</span></p>
   {/if}
 {:else}
   <p>{$t('panels.notFound')}</p>

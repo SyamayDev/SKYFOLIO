@@ -8,7 +8,9 @@
  * Bagian bergerak diekspos supaya Plane.ts bisa menganimasikannya.
  */
 import {
+  AdditiveBlending,
   CanvasTexture,
+  ConeGeometry,
   DoubleSide,
   Group,
   Mesh,
@@ -23,6 +25,7 @@ import {
   type Material,
 } from 'three';
 import { MeshBasicNodeMaterial, MeshToonNodeMaterial } from 'three/webgpu';
+import { color, dot, float, mix, normalView, oneMinus, positionGeometry, positionViewDirection, pow, sin, smoothstep, time, uniform } from 'three/tsl';
 import { EXTRA, PALETTE } from '../config/palette';
 import { Kit, airfoilWing, box, cone, cyl, extrude, lathe, rbox, sphere, strut, torus } from '../utils/modeling/Kit';
 import { createToonMaterial, createUnlitMaterial, toonGradient } from '../utils/modeling/materials';
@@ -151,6 +154,10 @@ export class PlaneModel {
   readonly navLights: { left: Mesh; right: Mesh; tail: Mesh };
   readonly canopy = new Group();
   readonly rocketKit = new Group();
+  readonly flames: Mesh[] = [];
+  readonly heatShell: Mesh;
+  private readonly uThrust = uniform(0);
+  private readonly uHeat = uniform(0);
   /** Titik duduk pilot (depan) dan co-pilot (belakang). */
   readonly pilotSeat = new Object3D();
   readonly copilotSeat = new Object3D();
@@ -420,8 +427,38 @@ export class PlaneModel {
       rocket.position.set(side * 1.2, W.y - 0.17, W.z);
       this.rocketKit.add(rocket);
     }
+    // Api roket (aditif) di belakang tiap roket; kuat-lemahnya dari uThrust.
+    const fm = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
+    const along = positionGeometry.y.add(0.5);
+    fm.colorNode = mix(color('#FFF3B0'), color('#FF6A2B'), along);
+    fm.opacityNode = this.uThrust.mul(float(1).sub(along)).mul(sin(time.mul(60)).mul(0.15).add(0.85));
+    this.disposables.push(fm);
+    for (const side of [-1, 1]) {
+      const flame = new Mesh(new ConeGeometry(0.1, 1, 10, 1, true), fm);
+      flame.rotation.x = Math.PI / 2;
+      flame.position.set(side * 1.2, W.y - 0.17, W.z + 0.85);
+      flame.name = 'rocket-flame';
+      flame.renderOrder = 4;
+      this.rocketKit.add(flame);
+      this.flames.push(flame);
+    }
     this.rocketKit.visible = false;
     this.root.add(this.rocketKit);
+
+    // Cangkang panas masuk atmosfer: bola fresnel oranye di sekeliling pesawat, menebal di depan.
+    const hm = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: DoubleSide });
+    const rimK = pow(oneMinus(dot(normalView, positionViewDirection).abs()), float(1.6));
+    const front = smoothstep(0.2, -1.0, positionGeometry.z);
+    hm.colorNode = mix(color('#FF6A1A'), color('#FFE9A0'), front.mul(0.8));
+    hm.opacityNode = this.uHeat.mul(rimK.mul(0.75).add(front.mul(0.55))).mul(sin(time.mul(35)).mul(0.12).add(0.88)).min(0.92);
+    this.disposables.push(hm);
+    this.heatShell = new Mesh(new SphereGeometry(1, 20, 12), hm);
+    this.heatShell.scale.set(3.1, 1.5, 2.6);
+    this.heatShell.position.set(0, 0.1, 0.1);
+    this.heatShell.visible = false;
+    this.heatShell.renderOrder = 5;
+    this.heatShell.name = 'heat-shell';
+    this.root.add(this.heatShell);
 
     // Titik duduk & kamera.
     this.pilotSeat.position.set(0, 0.47, 0.32);
@@ -459,6 +496,18 @@ export class PlaneModel {
     this.navLights.left.visible = on;
     this.navLights.right.visible = on;
     this.navLights.tail.visible = !navBlink || Math.sin(time * 6 + 2) > 0;
+  }
+
+  /** Kit roket, api, dan panas masuk atmosfer (dari SpaceFlight). */
+  setSpaceFx(rocket: boolean, thrust: number, heat: number): void {
+    this.rocketKit.visible = rocket;
+    this.uThrust.value = thrust;
+    for (const f of this.flames) {
+      f.visible = thrust > 0.02;
+      f.scale.set(1, 0.6 + thrust * 1.6, 1);
+    }
+    this.uHeat.value = heat;
+    this.heatShell.visible = heat > 0.02;
   }
 
   dispose(): void {

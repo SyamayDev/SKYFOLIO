@@ -8,9 +8,8 @@
   import { panel } from '../core/AppState';
   import Pause from './Pause.svelte';
   import Preflight from './Preflight.svelte';
-  import Toasts from './Toasts.svelte';
   import TouchControls from './TouchControls.svelte';
-  import Tutorial from './Tutorial.svelte';
+  import TopStack from './TopStack.svelte';
 
   let rotateDismissed = $state(false);
   let flying = $derived($appPhase === 'flying');
@@ -28,11 +27,7 @@
     <Radar />
     <Overlays />
     {#if $inputDevice === 'touch' && !$paused}<TouchControls />{/if}
-    {#if !$paused}<Tutorial />{/if}
-    <Toasts />
-    {#if showRotate}
-      <button class="rotate" onclick={() => (rotateDismissed = true)}>📱↻ {$t('hud.rotateHint')} ✕</button>
-    {/if}
+    <TopStack rotate={showRotate} onrotate={() => (rotateDismissed = true)} />
     {#if $paused}<Pause />{/if}
     {#if !$paused && $panel}<Panels />{/if}
   {:else}
@@ -70,17 +65,5 @@
     text-decoration: none;
     font-weight: 700;
   }
-  .rotate {
-    position: fixed;
-    left: 50%;
-    top: calc(196px + var(--safe-top));
-    transform: translateX(-50%);
-    border: 0;
-    background: var(--panel-strong);
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-size: 15px;
-    box-shadow: var(--shadow);
-    min-height: 44px;
-  }
+
 </style>

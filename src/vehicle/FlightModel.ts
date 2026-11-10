@@ -36,6 +36,13 @@ export interface FlightEnv {
   groundAhead?: () => boolean;
   /** Arah landasan (tangen) bila pesawat sedang di landasan — untuk bantuan jaga arah di darat. */
   headingHint?: Vector3 | null;
+  /** Pusat benda langit yang menarik (default pusat Bumi) dan radius permukaannya. */
+  center?: Vector3;
+  surfaceRadius?: number;
+  /** 0..1 kekuatan aerodinamika (0 = hampa: angkasa/Bulan). */
+  aero?: number;
+  /** Mode antariksa: kendali rotasi dengan pendorong kecil, tanpa belokan terkoordinasi. */
+  space?: boolean;
 }
 
 export class FlightState {
@@ -84,6 +91,7 @@ export class FlightModel {
   private readonly rb = new Vector3();
   private readonly force = new Vector3();
   private readonly tmp = new Vector3();
+  private readonly tmp2 = new Vector3();
   private readonly omegaT = new Vector3();
   private readonly err = new Vector3();
 
@@ -122,18 +130,20 @@ export class FlightModel {
     const lv = body.linvel();
     const av = body.angvel();
     this.pos.set(t.x, t.y, t.z);
+    if (env.center) this.pos.sub(env.center);
     this.q.set(r.x, r.y, r.z, r.w);
     this.vel.set(lv.x, lv.y, lv.z);
     this.angVel.set(av.x, av.y, av.z);
 
     const radius = this.pos.length();
     this.up.copy(this.pos).divideScalar(radius);
-    const alt = radius - PLANET_RADIUS;
+    const alt = radius - (env.surfaceRadius ?? PLANET_RADIUS);
     this.f.copy(FORWARD).applyQuaternion(this.q);
     this.ub.copy(UP).applyQuaternion(this.q);
     this.rb.copy(RIGHT).applyQuaternion(this.q);
 
-    const rho = Math.exp(-Math.max(alt, 0) / AIR.DENSITY_SCALE);
+    const rho = Math.exp(-Math.max(alt, 0) / AIR.DENSITY_SCALE) * (env.aero ?? 1);
+    const space = env.space === true;
     const airborne = !env.grounded && !env.inWater;
 
     // --- 1. Penjajaran kecepatan (bantuan arcade): v ← slerp(v, f·|v|, ALIGN·dt·ρ)
@@ -170,7 +180,8 @@ export class FlightModel {
     s.boosting = input.boost && s.throttle > 0.5;
 
     // --- 3. Stall (dengan histeresis supaya tidak berkedip)
-    if (airborne) {
+    // Di udara tipis/hampa tidak ada stall aerodinamis (roket & orbit yang mengatur).
+    if (airborne && !space && (env.aero ?? 1) > 0.7) {
       if (!this.stallLatch && (airspeed < c.STALL_SPEED || alphaDeg > c.ALPHA_STALL_DEG)) this.stallLatch = true;
       else if (this.stallLatch && airspeed > c.STALL_SPEED + c.STALL_EXIT_MARGIN && alphaDeg < c.ALPHA_STALL_DEG - 4)
         this.stallLatch = false;
@@ -213,7 +224,8 @@ export class FlightModel {
     body.applyImpulse(this.tmp.copy(this.force).multiplyScalar(dt), true);
 
     // --- 5. Kontrol rotasi: laju sudut target
-    const auth = clamp(airspeed / c.CRUISE_SPEED, c.AUTHORITY_MIN, c.AUTHORITY_MAX);
+    // Di angkasa rotasi memakai pendorong kecil → wewenang tetap, tidak bergantung kecepatan udara.
+    const auth = space ? c.SPACE_AUTHORITY : clamp(airspeed / c.CRUISE_SPEED, c.AUTHORITY_MIN, c.AUTHORITY_MAX);
     let pitchRate = input.pitch * c.PITCH_RATE_MAX_DEG * DEG2RAD * auth;
     let rollRate = input.roll * c.ROLL_RATE_MAX_DEG * DEG2RAD * auth;
     let yawRate = input.yaw * c.YAW_RATE_MAX_DEG * DEG2RAD * auth;
@@ -225,7 +237,15 @@ export class FlightModel {
     s.bankDeg = bank / DEG2RAD;
     s.pitchDeg = pitch / DEG2RAD;
 
-    if (airborne) {
+    this.tmp2.set(0, 0, 0);
+    if (airborne && space) {
+      // Hampa: tanpa auto-level/belokan terkoordinasi. Bantuan: hidung pelan-pelan mengikuti arah gerak
+      // (prograde) saat stik dilepas, supaya mudah diarahkan.
+      if (env.assist !== 'off' && Math.abs(input.pitch) < 0.1 && Math.abs(input.roll) < 0.1 && this.vel.lengthSq() > 4) {
+        this.tmp.copy(this.vel).normalize();
+        this.tmp2.crossVectors(this.f, this.tmp).multiplyScalar(c.SPACE_PROGRADE_GAIN);
+      }
+    } else if (airborne) {
       if (env.assist !== 'off') {
         // Batas angguk aman: cegah pemula langsung stall saat menahan "naik".
         if (airspeed < c.ENVELOPE_FREE_SPEED && upright) {
@@ -299,9 +319,11 @@ export class FlightModel {
       .addScaledVector(this.f, rollRate)
       .addScaledVector(this.ub, -yawRate)
       .addScaledVector(this.up, -turnRate);
-    // Rotasi rangka tangen saat bergerak: ω_frame = (up × v) / r
-    this.tmp.crossVectors(this.up, this.vel).divideScalar(radius);
-    this.omegaT.add(this.tmp);
+    // Rotasi rangka tangen saat bergerak: ω_frame = (up × v) / r (di angkasa sikap pesawat inersial).
+    if (!space) {
+      this.tmp.crossVectors(this.up, this.vel).divideScalar(radius);
+      this.omegaT.add(this.tmp);
+    } else this.omegaT.add(this.tmp2);
     // Weathervane: hidung cenderung mengikuti arah aliran udara. Di mode bantuan hanya saat stall
     // (supaya hidung jatuh mengikuti arah jatuh); kalau selalu aktif, ia memperkuat lonjakan naik saat cepat.
     if (airborne && airspeed > 3 && (env.assist === 'off' || this.stallLatch)) {

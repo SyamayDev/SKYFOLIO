@@ -52,7 +52,7 @@
   },
   "copilot": {
     "enabled": true,
-    "voice": true,
+    "voice": false,
     "subtitles": true,
     "chatterLevel": "normal",
     "chatterOptions": ["quiet", "normal", "chatty"]

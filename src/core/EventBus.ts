@@ -6,6 +6,9 @@ import type { QualityTier } from '../config/quality';
 
 export type InputDevice = 'keyboard' | 'touch' | 'gamepad';
 
+/** Lapisan langit tempat pesawat berada (docs/03 bagian 8–10). */
+export type FlightRegime = 'ground' | 'water' | 'air' | 'stratosphere' | 'space' | 'moon';
+
 export interface Vec3Like {
   x: number;
   y: number;
@@ -34,6 +37,14 @@ export interface GameEvents {
   'camera:mode': { mode: 'chase' | 'cockpit' };
   'ui:pause': { paused: boolean };
   'toast': { text: string; kind?: 'info' | 'success' | 'warn'; icon?: string };
+  'weather:thunder': { delay: number; strength: number };
+  'weather:home': { code: number; temperature: number };
+  'canopy': { closed: boolean };
+  'wiper': Record<string, never>;
+  'flight:regime': { regime: FlightRegime; prev: FlightRegime };
+  'rocket': { deployed: boolean };
+  'reentry': { active: boolean };
+  'moon:landed': { smooth: boolean };
   'zone:enter': { id: string; first: boolean };
   'zone:exit': { id: string };
   'stamp': { id: string; kind: 'zone' | 'landmark' | 'project' };
@@ -41,13 +52,13 @@ export interface GameEvents {
   'project:land': { id: string };
   'project:open': { id: string };
   'panel:open': { kind: PanelKind; id?: string };
-  'piko:say': { text: string; mood?: 'happy' | 'wow' | 'think' | 'sleepy' | 'cheer'; priority?: number };
+  'piko:say': { text: string; mood?: 'happy' | 'wow' | 'think' | 'sleepy' | 'cheer'; priority?: number; radio?: boolean };
   'interact': { zone: string; action: string };
   'balloon:hit': { linkId: string };
   'parcel:delivered': Record<string, never>;
   'achievement': { id: string };
   'autopilot': { active: boolean; target?: string };
-  'piko:said': { text: string; ms: number };
+  'piko:said': { text: string; ms: number; radio?: boolean };
 }
 
 export type PanelKind =

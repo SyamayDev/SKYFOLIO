@@ -87,6 +87,10 @@ export class GroundMode {
     this.groundTimer = 0;
   }
 
+  /** Pusat benda langit tempat roda berpijak (Bumi atau Bulan) dan skala gravitasinya. */
+  readonly center = new Vector3();
+  gScale = 1;
+
   step(body: RAPIER.RigidBody, brake: boolean, dt: number, parkingBrake = false): void {
     const t = body.translation();
     const r = body.rotation();
@@ -95,7 +99,7 @@ export class GroundMode {
     _down.set(0, -1, 0).applyQuaternion(_q);
     _f.set(0, 0, -1).applyQuaternion(_q);
     const mass = FLIGHT.MASS;
-    const g = FLIGHT.G0;
+    const g = FLIGHT.G0 * this.gScale;
     let contacts = 0;
 
     for (const w of this.wheels) {
@@ -160,7 +164,7 @@ export class GroundMode {
     this.grounded = contacts > 0 && this.groundTimer >= GROUND.AIRBORNE_DEBOUNCE * 0.5 ? true : contacts >= 2;
 
     // Tinggi di atas tanah (ground effect + HUD).
-    const hit = this.physics.castRay(_pos, _down.copy(_pos).normalize().negate(), 12, WORLD_ONLY_FILTER, body);
+    const hit = this.physics.castRay(_pos, _down.copy(_pos).sub(this.center).normalize().negate(), 12, WORLD_ONLY_FILTER, body);
     this.heightAboveGround = hit ? hit.distance : Infinity;
   }
 

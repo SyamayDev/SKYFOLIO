@@ -2,7 +2,7 @@
  * State bersama antara dunia 3D dan UI Svelte.
  * HUD diperbarui ±15× per detik (bukan tiap frame) supaya Svelte tidak membebani loop.
  */
-import type { InputDevice, PanelKind, PreflightItemId } from './EventBus';
+import type { FlightRegime, InputDevice, PanelKind, PreflightItemId } from './EventBus';
 import type { QualityTier } from '../config/quality';
 import { store } from './Store';
 
@@ -39,9 +39,15 @@ export interface HudState {
   tier: QualityTier;
   /** Aksi kontekstual tombol Aksi (kunci i18n), null = sembunyikan. */
   action: string | null;
+  /** Lapisan langit (udara/stratosfer/angkasa/Bulan…) untuk HUD. */
+  regime: FlightRegime;
+  /** Kit roket terpasang (tombol Boost = roket). */
+  rocket: boolean;
 }
 
 export const hud = store<HudState>({
+  regime: 'ground',
+  rocket: false,
   speed: 0,
   altitude: 0,
   heading: 0,

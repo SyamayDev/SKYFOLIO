@@ -50,6 +50,7 @@ export interface Settings {
     assistLevel: AssistLevel;
     vibration: boolean;
     cameraShake: boolean;
+    canopy: 'auto' | 'open' | 'closed';
   };
   camera: {
     mode: CameraModeSetting;
@@ -119,6 +120,7 @@ function buildDefaults(): Settings {
       assistLevel: 'normal' as AssistLevel,
       vibration: true,
       cameraShake: true,
+      canopy: 'auto' as 'auto' | 'open' | 'closed',
     }),
     camera: pick(d.camera, { mode: 'chase' as CameraModeSetting, fovBoost: true, speedLines: true }),
     copilot: pick(d.copilot, {

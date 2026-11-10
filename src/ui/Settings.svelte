@@ -2,6 +2,7 @@
   import { settings, updateSettings, type Settings } from '../core/Settings';
   import { t } from '../i18n';
   import { actions } from './bridge';
+  import { toStation } from '../audio/MusicEngine/MusicEngine';
   import type { QualitySetting } from '../config/quality';
   import type { AssistLevel } from '../config/flight';
 
@@ -31,6 +32,8 @@
     { value: 'high', key: 'settings.qualityHigh' },
     { value: 'ultra', key: 'settings.qualityUltra' },
   ];
+  const weathers = ['clear', 'cloudy', 'rain', 'storm', 'snow', 'fog'];
+  const stations = ['syamay', 'funkot', 'timur', 'gurun', 'energi'];
   const assists: { value: AssistLevel; key: Parameters<typeof $t>[0] }[] = [
     { value: 'full', key: 'settings.assistFull' },
     { value: 'normal', key: 'settings.assistNormal' },
@@ -53,6 +56,25 @@
   </section>
 
   <section>
+    <h3>{$t('settings.world')}</h3>
+    <label class="row"><span>{$t('settings.realTime')}</span><input type="checkbox" checked={$settings.world.realTimeDayNight} onchange={(e) => set('world', { realTimeDayNight: e.currentTarget.checked })} data-testid="set-realtime" /></label>
+    {#if !$settings.world.realTimeDayNight}
+      <label class="row"><span>{$t('settings.hour')} · {String(Math.floor($settings.world.manualTimeOfDay)).padStart(2, '0')}.{String(Math.round(($settings.world.manualTimeOfDay % 1) * 60)).padStart(2, '0')}</span><input type="range" min="0" max="23.75" step="0.25" value={$settings.world.manualTimeOfDay} oninput={(e) => updateSettings('world', { manualTimeOfDay: Number(e.currentTarget.value) })} /></label>
+    {/if}
+    <label class="row"><span>{$t('settings.realWeather')}</span><input type="checkbox" checked={$settings.world.realHometownWeather} onchange={(e) => set('world', { realHometownWeather: e.currentTarget.checked })} /></label>
+    {#if !$settings.world.realHometownWeather}
+      <label class="row">
+        <span>{$t('settings.weather')}</span>
+        <select value={$settings.world.manualWeather} onchange={(e) => set('world', { manualWeather: (e.currentTarget as HTMLSelectElement).value })} data-testid="set-weather">
+          {#each weathers as w (w)}<option value={w}>{$t(`weather.${w}` as Parameters<typeof $t>[0])}</option>{/each}
+        </select>
+      </label>
+    {/if}
+    <label class="row"><span>{$t('settings.seasons')}</span><input type="checkbox" checked={$settings.world.seasons} onchange={(e) => set('world', { seasons: e.currentTarget.checked })} /></label>
+    <label class="row"><span>{$t('settings.uiTheme')}</span><input type="checkbox" checked={$settings.world.uiThemeFollowsDayNight} onchange={(e) => set('world', { uiThemeFollowsDayNight: e.currentTarget.checked })} /></label>
+  </section>
+
+  <section>
     <h3>{$t('settings.controls')}</h3>
     <div class="row">
       <span>{$t('settings.assist')}</span>
@@ -70,6 +92,14 @@
     {#if $settings.controls.gyroSteering}
       <label class="row"><span>{$t('settings.gyroSensitivity')}</span><input type="range" min="0.4" max="2" step="0.1" value={$settings.controls.gyroSensitivity} oninput={(e) => updateSettings('controls', { gyroSensitivity: Number(e.currentTarget.value) })} /></label>
     {/if}
+    <label class="row">
+      <span>{$t('settings.canopy')}</span>
+      <select value={$settings.controls.canopy} onchange={(e) => set('controls', { canopy: (e.currentTarget as HTMLSelectElement).value as 'auto' })}>
+        <option value="auto">{$t('settings.canopyAuto')}</option>
+        <option value="open">{$t('settings.canopyOpen')}</option>
+        <option value="closed">{$t('settings.canopyClosed')}</option>
+      </select>
+    </label>
     <label class="row">
       <span>{$t('settings.joystickSide')}</span>
       <select value={$settings.controls.touchJoystickSide} onchange={(e) => set('controls', { touchJoystickSide: (e.currentTarget as HTMLSelectElement).value as 'left' })}>
@@ -99,18 +129,46 @@
         {#each qualities as q (q.value)}<option value={q.value}>{$t(q.key)}</option>{/each}
       </select>
     </label>
+    <label class="row">
+      <span>{$t('settings.postProcessing')}</span>
+      <select value={$settings.graphics.postProcessing} onchange={(e) => set('graphics', { postProcessing: (e.currentTarget as HTMLSelectElement).value })}>
+        <option value="auto">{$t('settings.ppAuto')}</option>
+        <option value="on">{$t('settings.ppOn')}</option>
+        <option value="off">{$t('settings.ppOff')}</option>
+      </select>
+    </label>
     <label class="row"><span>{$t('settings.showFps')}</span><input type="checkbox" checked={$settings.graphics.showFps} onchange={(e) => set('graphics', { showFps: e.currentTarget.checked })} /></label>
   </section>
 
   <section>
     <h3>{$t('settings.audio')}</h3>
-    {#each [['master', 'settings.master'], ['engine', 'settings.engine'], ['wind', 'settings.wind'], ['sfx', 'settings.sfx']] as [key, label] (key)}
+    {#each [['master', 'settings.master'], ['music', 'settings.music'], ['engine', 'settings.engine'], ['wind', 'settings.wind'], ['sfx', 'settings.sfx'], ['ambient', 'settings.ambient'], ['ui', 'settings.uiSounds']] as [key, label] (key)}
       <label class="row">
         <span>{$t(label as Parameters<typeof $t>[0])}</span>
         <input type="range" min="0" max="1" step="0.05" value={$settings.audio[key as 'master']} oninput={(e) => updateSettings('audio', { [key as string]: Number(e.currentTarget.value) })} />
       </label>
     {/each}
+    <label class="row">
+      <span>{$t('settings.radio')}</span>
+      <select value={toStation($settings.audio.radioStation)} onchange={(e) => set('audio', { radioStation: (e.currentTarget as HTMLSelectElement).value })} data-testid="set-radio">
+        {#each stations as st (st)}<option value={st}>{$t(`radio.${st}` as Parameters<typeof $t>[0])}</option>{/each}
+      </select>
+    </label>
     <label class="row"><span>{$t('settings.muteHidden')}</span><input type="checkbox" checked={$settings.audio.muteWhenTabHidden} onchange={(e) => set('audio', { muteWhenTabHidden: e.currentTarget.checked })} /></label>
+  </section>
+
+  <section>
+    <h3>{$t('settings.copilot')}</h3>
+    <label class="row"><span>{$t('settings.copilotOn')}</span><input type="checkbox" checked={$settings.copilot.enabled} onchange={(e) => set('copilot', { enabled: e.currentTarget.checked })} /></label>
+    <label class="row"><span>{$t('settings.subtitles')}</span><input type="checkbox" checked={$settings.copilot.subtitles} onchange={(e) => set('copilot', { subtitles: e.currentTarget.checked })} /></label>
+    <label class="row">
+      <span>{$t('settings.chatter')}</span>
+      <select value={$settings.copilot.chatterLevel} onchange={(e) => set('copilot', { chatterLevel: (e.currentTarget as HTMLSelectElement).value as 'normal' })}>
+        <option value="quiet">{$t('settings.chatterQuiet')}</option>
+        <option value="normal">{$t('settings.chatterNormal')}</option>
+        <option value="chatty">{$t('settings.chatterChatty')}</option>
+      </select>
+    </label>
   </section>
 
   <section>
@@ -157,14 +215,58 @@
     background: var(--cream);
     min-height: 40px;
   }
+  /* Sakelar geser (ganti checkbox bawaan browser yang berbeda-beda tiap perangkat). */
   input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: none;
+    position: relative;
+    width: 50px;
+    height: 30px;
+    margin: 0;
+    border-radius: 999px;
+    background: #ddd3c2;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  input[type='checkbox']::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
     width: 24px;
     height: 24px;
-    accent-color: var(--sky);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(43, 45, 66, 0.3);
+    transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  input[type='checkbox']:checked {
+    background: var(--leaf);
+  }
+  input[type='checkbox']:checked::after {
+    transform: translateX(20px);
+  }
+  input[type='checkbox']:focus-visible,
+  select:focus-visible,
+  input[type='range']:focus-visible {
+    outline: 3px solid var(--sun);
+    outline-offset: 2px;
   }
   input[type='range'] {
     width: 46%;
-    accent-color: var(--sky);
+    accent-color: #2f8fa6;
+    cursor: pointer;
+  }
+  select {
+    cursor: pointer;
+    color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    input[type='checkbox'],
+    input[type='checkbox']::after {
+      transition: none;
+    }
   }
   .seg {
     display: flex;

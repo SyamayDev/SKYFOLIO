@@ -21,6 +21,8 @@ export interface CameraTarget {
   boosting: boolean;
   /** Posisi mata kokpit (dunia). */
   cockpitEye: Vector3;
+  /** "Atas" lokal (menjauhi Bumi, atau Bulan saat di dekatnya). Bila tidak ada → dari posisi. */
+  up?: Vector3;
 }
 
 export interface CameraOptions {
@@ -103,7 +105,8 @@ export class CameraRig {
   snap(t: CameraTarget): void {
     _f.set(0, 0, -1).applyQuaternion(t.quaternion);
     this.frameDir.copy(_f);
-    _up.copy(t.position).normalize();
+    if (t.up) _up.copy(t.up);
+    else _up.copy(t.position).normalize();
     this.frameUp.copy(_up);
     this.initialized = false;
   }
@@ -118,7 +121,8 @@ export class CameraRig {
       this.orbitPitch += -this.orbitPitch * k;
     }
 
-    _up.copy(t.position).normalize();
+    if (t.up) _up.copy(t.up);
+    else _up.copy(t.position).normalize();
     _f.set(0, 0, -1).applyQuaternion(t.quaternion);
     _ub.set(0, 1, 0).applyQuaternion(t.quaternion);
 

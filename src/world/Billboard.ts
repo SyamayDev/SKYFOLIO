@@ -2,7 +2,8 @@
  * Papan teks 3D (CanvasTexture) yang otomatis digambar ulang saat bahasa diganti (docs/07 bagian 4).
  * Mode `sprite` selalu menghadap kamera; mode bidang dipakai untuk papan yang tertancap di dunia.
  */
-import { CanvasTexture, DoubleSide, Mesh, PlaneGeometry, SRGBColorSpace, Sprite, type Object3D } from 'three';
+import { CanvasTexture, FrontSide, Mesh, PlaneGeometry, SRGBColorSpace, Sprite, type Object3D } from 'three';
+import { color, texture } from 'three/tsl';
 import { MeshBasicNodeMaterial, SpriteNodeMaterial } from 'three/webgpu';
 import { locale, tr, type I18nKey } from '../i18n';
 
@@ -21,6 +22,7 @@ const PX_PER_UNIT = 128;
 
 export class Billboard {
   readonly object: Object3D;
+  private backMaterial: MeshBasicNodeMaterial | null = null;
   private readonly canvas: HTMLCanvasElement;
   private readonly texture: CanvasTexture;
   private readonly material: MeshBasicNodeMaterial | SpriteNodeMaterial;
@@ -44,9 +46,20 @@ export class Billboard {
       s.renderOrder = 3;
       this.object = s;
     } else {
-      const m = new MeshBasicNodeMaterial({ map: this.texture, transparent: true, side: DoubleSide });
+      // Depan bertekstur; belakang polos mengikuti bentuk (alfa) papan → dari belakang tidak terlihat teks cermin.
+      const m = new MeshBasicNodeMaterial({ map: this.texture, transparent: true, side: FrontSide });
       this.material = m;
-      this.object = new Mesh(new PlaneGeometry(opts.width, opts.height), m);
+      const geo = new PlaneGeometry(opts.width, opts.height);
+      const front = new Mesh(geo, m);
+      const bm = new MeshBasicNodeMaterial({ transparent: true, side: FrontSide });
+      bm.colorNode = color('#E3D6BF');
+      bm.opacityNode = texture(this.texture).a;
+      this.backMaterial = bm;
+      const back = new Mesh(geo, bm);
+      back.rotation.y = Math.PI;
+      back.name = 'billboard-back';
+      front.add(back);
+      this.object = front;
     }
     this.object.name = 'billboard';
     this.unsub = locale.subscribe(() => this.redraw());
@@ -88,6 +101,7 @@ export class Billboard {
     this.unsub();
     this.texture.dispose();
     this.material.dispose();
+    this.backMaterial?.dispose();
     if ((this.object as Mesh).isMesh) (this.object as Mesh).geometry.dispose();
   }
 }

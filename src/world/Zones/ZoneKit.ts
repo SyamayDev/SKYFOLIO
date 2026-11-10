@@ -5,6 +5,7 @@
  * - Collider statis kuboid, props fisika, dan pulau prosedural (mesh + trimesh) untuk zona di laut.
  * - Penanda POI yang terlihat dari jauh.
  */
+import { drawIcon, isIconName } from '../../ui/icons';
 import type RAPIER from '@dimforge/rapier3d-compat';
 import { BufferGeometry, Color, Float32BufferAttribute, Group, Mesh, Quaternion, Vector3, type Material, type Object3D } from 'three';
 import { PALETTE } from '../../config/palette';
@@ -290,7 +291,7 @@ function smooth(t: number): number {
 // ---------------------------------------------------------------------------------------------
 // Penanda POI & papan informasi
 
-/** Ikon bulat melayang di atas zona (terlihat dari jauh, memudar saat dekat). */
+/** Ikon bulat melayang di atas zona (terlihat dari jauh, memudar saat dekat). Ikon vektor dari ui/icons. */
 export function poiMarker(icon: string, color: string): Billboard {
   return new Billboard(() => icon, {
     width: 3.2,
@@ -307,10 +308,13 @@ export function poiMarker(icon: string, color: string): Billboard {
       g.lineWidth = w * 0.05;
       g.strokeStyle = '#FFF6E6';
       g.stroke();
-      g.font = `${Math.round(h * 0.5)}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
-      g.textAlign = 'center';
-      g.textBaseline = 'middle';
-      g.fillText(icon, w / 2, h / 2 + h * 0.03);
+      if (isIconName(icon)) drawIcon(g, icon, w / 2, h / 2, w * 0.5, '#FFFFFF');
+      else {
+        g.font = `${Math.round(h * 0.5)}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(icon, w / 2, h / 2 + h * 0.03);
+      }
     },
   });
 }

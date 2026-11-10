@@ -1,12 +1,12 @@
 <script lang="ts">
   /** Banner judul zona, gelembung Piko + subtitle, status autopilot, waktu sirkuit, petunjuk aksi. */
-  import { autopilotState, currentZone, hud, inputDevice, subtitle, zoneBanner } from '../core/AppState';
+  import { hud, inputDevice, panel, subtitle, zoneBanner } from '../core/AppState';
   import { settings } from '../core/Settings';
-  import { L, content } from '../content';
-  import { locale, t } from '../i18n';
+  import { t } from '../i18n';
   import { circuit, fmt } from '../world/Zones/SkyCircuit';
-  import { actions } from './bridge';
   import { pikoLine } from './glue';
+  import PikoBubble from './PikoBubble.svelte';
+  import { compact } from './layout';
 
   let bannerVisible = $state(false);
   let bannerTimer: ReturnType<typeof setTimeout> | null = null;
@@ -29,27 +29,13 @@
   {/key}
 {/if}
 
-{#if $pikoLine && $settings.copilot.enabled}
-  {#key $pikoLine.n}
-    <div class="piko mood-{$pikoLine.mood}" aria-hidden="true">
-      <span class="avatar">🧒</span>
-      <span class="bubble">{$pikoLine.text}</span>
-    </div>
-  {/key}
-{/if}
+{#if !$compact && $inputDevice !== 'touch' && !$panel}<PikoBubble docked />{/if}
 
 {#if $subtitle && $settings.copilot.subtitles}
   <!-- Ucapan Piko sudah tampil di gelembung → subtitle hanya untuk pembaca layar agar tidak dobel. -->
   <div class="subtitle" class:sr-only={$pikoLine?.n === $subtitle.n && $settings.copilot.enabled} role="status" aria-live="polite">
     <b>{$subtitle.speaker}:</b>
     {$subtitle.text}
-  </div>
-{/if}
-
-{#if $autopilotState.active}
-  <div class="autopilot" role="status">
-    🧭 {$t('autopilot.flyingTo', { target: $autopilotState.target ?? '' })}
-    <button onclick={() => actions.cancelAutopilot()} aria-label={$t('autopilot.cancel')}>✕</button>
   </div>
 {/if}
 
@@ -66,10 +52,6 @@
     <kbd>{keyHint}</kbd>
     {$t($hud.action as never)}
   </div>
-{/if}
-
-{#if $currentZone && $inputDevice !== 'touch'}
-  <div class="zone-chip">{L($content.zones.zones.find((z) => z.id === $currentZone)?.name, $locale)}</div>
 {/if}
 
 <style>
@@ -116,29 +98,11 @@
       transform: translate(-50%, -10px);
     }
   }
-  .piko {
-    position: fixed;
-    right: calc(12px + var(--safe-right));
-    bottom: calc(150px + var(--safe-bottom));
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: min(360px, 70vw);
-    pointer-events: none;
-    animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
-  }
-  .avatar {
-    font-size: 34px;
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
-  }
-  .bubble {
-    order: -1;
-    background: #fff;
-    border-radius: 18px 18px 4px 18px;
-    padding: 10px 14px;
-    font-size: 15px;
-    box-shadow: var(--shadow);
-  }
+
+
+
+
+
   @keyframes pop {
     from {
       opacity: 0;
@@ -169,34 +133,12 @@
     text-align: center;
     pointer-events: none;
   }
-  .autopilot {
-    position: fixed;
-    top: calc(62px + var(--safe-top));
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2f8fa6;
-    color: #fff;
-    border-radius: 999px;
-    padding: 6px 8px 6px 16px;
-    font: 600 15px var(--font-title);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    pointer-events: auto;
-    box-shadow: var(--shadow);
-  }
-  .autopilot button {
-    border: 0;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    font-size: 16px;
-  }
+
+
   .race {
     position: fixed;
     top: calc(64px + var(--safe-top));
+    z-index: 3;
     right: calc(12px + var(--safe-right));
     background: var(--panel-strong);
     border-radius: 18px;
@@ -219,7 +161,8 @@
   .action-hint {
     position: fixed;
     left: 50%;
-    bottom: calc(24px + var(--safe-bottom));
+    /* Di atas kartu tutorial (tengah bawah) supaya tidak saling menutupi. */
+    bottom: calc(92px + var(--safe-bottom));
     transform: translateX(-50%);
     background: var(--panel-strong);
     border-radius: 999px;
@@ -241,20 +184,22 @@
     place-items: center;
     font-family: var(--font-title);
   }
-  .zone-chip {
-    position: fixed;
-    top: calc(60px + var(--safe-top));
-    left: 50%;
-    transform: translateX(-50%);
-    font: 600 13px var(--font-title);
-    background: var(--panel);
-    border-radius: 999px;
-    padding: 3px 12px;
-    pointer-events: none;
+
+  @media (max-width: 1100px) and (min-width: 601px) {
+    .action-hint {
+      bottom: calc(158px + var(--safe-bottom));
+    }
+  }
+  @media (max-width: 600px) {
+    .action-hint {
+      bottom: calc(96px + var(--safe-bottom));
+    }
+    .race {
+      top: calc(122px + var(--safe-top));
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .banner,
-    .piko {
+    .banner {
       animation: none;
     }
   }

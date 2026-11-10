@@ -25,7 +25,7 @@ let n = 0;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 let wired = false;
 
-export function sayPiko(text: string, mood: PikoLine['mood'] = 'happy', priority = 1): void {
+export function sayPiko(text: string, mood: PikoLine['mood'] = 'happy', priority = 1, radio = false): void {
   const s = settings.get();
   if (!s.copilot.enabled || !text) return;
   const now = performance.now() / 1000;
@@ -41,21 +41,47 @@ export function sayPiko(text: string, mood: PikoLine['mood'] = 'happy', priority
     pikoLine.set(null);
     subtitle.set(null);
   }, ms);
-  bus.emit('piko:said', { text, ms });
+  bus.emit('piko:said', { text, ms, radio });
 }
 
 export function wireUi(): void {
   if (wired) return;
   wired = true;
   bus.on('toast', (e) => pushToast(e.text, e.kind ?? 'info', e.icon));
-  bus.on('piko:say', (e) => sayPiko(e.text, e.mood, e.priority ?? 1));
+  bus.on('piko:say', (e) => sayPiko(e.text, e.mood, e.priority ?? 1, e.radio ?? false));
   bus.on('panel:open', (e) => panel.set({ kind: e.kind, ...(e.id ? { id: e.id } : {}) }));
   bus.on('stamp', (e) => {
     if (e.kind === 'landmark') return;
-    pushToast(tr('passport.stamped'), 'success', '🛂');
+    pushToast(tr('passport.stamped'), 'success', 'passport');
   });
   bus.on('landmark:visit', (e) => {
     const lm = content.get().landmarks.landmarks.find((x) => x.id === e.id);
-    if (lm && e.first) pushToast(tr('passport.landmark', { name: L(lm.name) }), 'success', '📸');
+    if (lm && e.first) pushToast(tr('passport.landmark', { name: L(lm.name) }), 'success', 'camera');
+  });
+  // Perjalanan ke angkasa (docs/03 bagian 8–10): Piko memandu setiap lapisan.
+  bus.on('rocket', (e) => {
+    if (e.deployed) sayPiko(tr('space.rocket'), 'wow', 3);
+  });
+  bus.on('flight:regime', (e) => {
+    if (e.regime === 'stratosphere' && e.prev === 'air') sayPiko(tr('space.strato'), 'wow', 2);
+    else if (e.regime === 'space' && e.prev !== 'moon') sayPiko(tr('space.space'), 'wow', 3);
+    else if (e.regime === 'moon') sayPiko(tr('space.moon'), 'happy', 3);
+    else if (e.regime === 'air' && e.prev === 'stratosphere') sayPiko(tr('space.back'), 'happy', 2);
+  });
+  bus.on('reentry', (e) => {
+    if (e.active) sayPiko(tr('space.reentry'), 'wow', 3);
+  });
+  bus.on('moon:landed', (e) => {
+    sayPiko(tr(e.smooth ? 'space.moonLandedSmooth' : 'space.moonLandedHard'), e.smooth ? 'wow' : 'happy', 3);
+    if (e.smooth) setTimeout(() => panel.set({ kind: 'zone', id: 'moon' }), 1600);
+  });
+  bus.on('canopy', (e) => {
+    if (e.closed && settings.get().controls.canopy === 'auto') sayPiko(tr('canopy.closing'), 'happy', 1);
+  });
+  bus.on('weather:home', (e) => {
+    homeWeather.set(e);
   });
 }
+
+/** Cuaca nyata Medan terakhir (untuk HUD/panel Menara & obrolan Piko). */
+export const homeWeather = store<{ code: number; temperature: number } | null>(null);
