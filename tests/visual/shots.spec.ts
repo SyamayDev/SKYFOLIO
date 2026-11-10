@@ -16,6 +16,7 @@ type Hooks = {
   teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) => void;
   camera: (mode: 'chase' | 'cockpit') => void;
   freeze: (on: boolean) => void;
+  openPanel: (kind: string, id?: string) => void;
 };
 
 async function hooks(page: Page, fn: (h: Hooks) => void): Promise<void> {
@@ -78,6 +79,24 @@ for (const vp of VIEWPORTS) {
       await page.getByTestId('open-settings').click();
       await page.waitForTimeout(400);
       await shot('9-pengaturan');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      // Panel-panel isi portofolio (Fase 1).
+      const panels: [string, string, string | undefined][] = [
+        ['10-panel-tentang', 'zone', 'control-tower'],
+        ['11-panel-proyek', 'project', 'si-raju'],
+        ['12-panel-pulau', 'zone', 'project-archipelago'],
+        ['13-panel-peta', 'map', undefined],
+        ['14-panel-paspor', 'passport', undefined],
+        ['15-panel-kontak', 'contact', undefined],
+        ['16-panel-skill', 'zone', 'skill-peaks'],
+        ['17-panel-bts', 'bts', undefined],
+      ];
+      for (const [name, kind, id] of panels) {
+        await page.evaluate(([k, i]) => (window as unknown as { __skyfolio: Hooks }).__skyfolio.openPanel(k!, i), [kind, id]);
+        await page.waitForTimeout(700);
+        await shot(name);
+      }
     });
   });
 }

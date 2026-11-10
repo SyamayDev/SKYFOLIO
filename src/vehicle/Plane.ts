@@ -149,6 +149,17 @@ export class Plane {
     }
   }
 
+  /** Perintah autopilot menimpa input pemain (memakai jalur input yang sama → fisika jujur). */
+  applyCommand(cmd: { pitch: number; roll: number; gas: number; boost: boolean }): void {
+    if (this.frozen) return;
+    this.input.pitch = cmd.pitch;
+    this.input.roll = cmd.roll;
+    this.input.yaw = 0;
+    this.input.gas = cmd.gas;
+    this.input.boost = cmd.boost;
+    this.input.brake = false;
+  }
+
   setWind(w: Vector3): void {
     _wind.copy(w);
   }

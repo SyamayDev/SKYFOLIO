@@ -195,7 +195,7 @@ export const LandmarksSchema = z.object({
   landmarks: z.array(
     z.object({
       id: z.string(),
-      name: z.string(),
+      name: z.union([z.string(), LText]),
       lat: z.number(),
       lon: z.number(),
       region: z.string(),

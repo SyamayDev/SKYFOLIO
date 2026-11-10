@@ -2,6 +2,12 @@
   import { t } from '../i18n';
   import { actions } from './bridge';
   import Settings from './Settings.svelte';
+  import { panel, paused } from '../core/AppState';
+
+  function openPanel(kind: 'map' | 'passport' | 'bts'): void {
+    paused.set(false);
+    panel.set({ kind });
+  }
 
   let showSettings = $state(false);
   let dialog: HTMLDivElement | undefined = $state();
@@ -21,7 +27,10 @@
       <div class="menu">
         <button class="primary" onclick={() => actions.resume()} data-testid="resume">▶ {$t('pause.resume')}</button>
         <button onclick={() => actions.respawn()} data-testid="respawn">🛬 {$t('pause.respawn')}</button>
+        <button onclick={() => openPanel('map')}>🗺️ {$t('hud.map')}</button>
+        <button onclick={() => openPanel('passport')}>🛂 {$t('hud.passport')}</button>
         <button onclick={() => (showSettings = true)} data-testid="open-settings">⚙️ {$t('pause.settings')}</button>
+        <button onclick={() => openPanel('bts')}>🔧 {$t('panels.bts')}</button>
         <a class="button" href="/ringkas/">📄 {$t('pause.ringkas')}</a>
       </div>
     {/if}

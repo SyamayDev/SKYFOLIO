@@ -18,6 +18,8 @@ interface RingDef {
   label: I18nKey;
 }
 
+/** Jarak (unit) di bawahnya label cincin disembunyikan. */
+const LABEL_HIDE_DIST = 16;
 export const RING_DEFS: RingDef[] = [
   { along: 34, side: 0, height: 9, label: 'rings.climb' },
   { along: 58, side: -12, height: 15, label: 'rings.turn' },
@@ -100,6 +102,8 @@ export class TrainingRings {
       const pop = 1 + Math.sin(r.flash * Math.PI) * 0.18;
       r.group.scale.setScalar(pop);
       r.label.object.position.y = RADIUS + 1.4 + Math.sin(time * 2 + i) * 0.15;
+      // Label disembunyikan saat sangat dekat supaya tidak menutupi kompas/HUD ketika melintas.
+      r.label.object.visible = _d.lengthSq() > LABEL_HIDE_DIST * LABEL_HIDE_DIST;
     }
   }
 

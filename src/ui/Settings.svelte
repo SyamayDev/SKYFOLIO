@@ -43,7 +43,7 @@
     <h3>{$t('settings.general')}</h3>
     <label class="row">
       <span>{$t('settings.language')}</span>
-      <select value={$settings.language} onchange={(e) => updateSettings('language', (e.currentTarget as HTMLSelectElement).value as 'auto')}>
+      <select value={$settings.language} data-testid="language-select" onchange={(e) => updateSettings('language', (e.currentTarget as HTMLSelectElement).value as 'auto')}>
         <option value="auto">{$t('settings.languageAuto')}</option>
         <option value="id">Indonesia</option>
         <option value="en">English</option>

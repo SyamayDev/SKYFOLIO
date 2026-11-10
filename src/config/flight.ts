@@ -160,3 +160,28 @@ export const RESPAWN = {
 export const AIR = {
   DENSITY_SCALE: 90,
 };
+
+/** Autopilot (docs/03 bagian 12). */
+export const AUTOPILOT = {
+  APPROACH_AGL: 20,
+  CLEARANCE: 9,
+  ORBIT_RADIUS: 18,
+  /** Sudut miring yang diminta per radian salah arah, dan batas miringnya (radian). */
+  BANK_GAIN: 1.1,
+  MAX_BANK: 0.6,
+  /** Penguat roll terhadap selisih sudut miring. */
+  ROLL_GAIN: 2.2,
+  /** Tambahan pitch per radian miring (menjaga ketinggian saat belok). */
+  TURN_PITCH: 0.35,
+  /** Ketinggian jelajah di atas permukaan saat tujuan masih jauh (> CRUISE_DIST unit). */
+  CRUISE_AGL: 34,
+  CRUISE_DIST: 160,
+  ALT_GAIN: 0.07,
+  VS_DAMP: 0.06,
+  /** Di bawah ketinggian ini (di atas tanah) autopilot tidak berbelok. */
+  TURN_MIN_AGL: 6,
+  /** Rentang ketinggian untuk membuka batas belok dari 0 ke penuh. */
+  TURN_BLEND_AGL: 10,
+  /** Input pemain di atas ini membatalkan autopilot. */
+  OVERRIDE_DEADZONE: 0.3,
+};

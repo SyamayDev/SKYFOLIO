@@ -89,3 +89,131 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --- Isi panel (dipakai semua Panel*.svelte) --- */
+.p-kicker {
+  font: 600 12px var(--font-title);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #2f8fa6;
+  margin: 0 0 2px;
+}
+.p-title {
+  font-family: var(--font-title);
+  font-size: 26px;
+  line-height: 1.15;
+  margin: 0 48px 8px 0;
+}
+.p-sub {
+  color: var(--panel-ink);
+  margin: 0 0 12px;
+}
+.p-section {
+  margin: 18px 0 8px;
+  font: 700 16px var(--font-title);
+}
+.p-text {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.p-text p {
+  margin: 0 0 10px;
+}
+.p-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 8px 0;
+  list-style: none;
+}
+.p-chips li {
+  background: rgba(58, 160, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.p-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.p-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--sun);
+  color: var(--ink);
+  font: 700 15px var(--font-title);
+  text-decoration: none;
+  cursor: pointer;
+}
+.p-btn.ghost {
+  background: rgba(43, 45, 66, 0.07);
+}
+.p-btn.sky {
+  background: #2f8fa6;
+  color: #fff;
+}
+.p-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.p-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(43, 45, 66, 0.08);
+}
+.p-card button,
+button.p-card {
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.p-muted {
+  color: var(--panel-ink);
+  font-size: 14px;
+}
+.p-field {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+.p-field input,
+.p-field textarea {
+  font: 16px var(--font-body);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(43, 45, 66, 0.15);
+  background: #fff;
+  color: var(--ink);
+  min-height: 44px;
+}
+.p-field input:focus,
+.p-field textarea:focus {
+  outline: none;
+  border-color: var(--sky);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -47,6 +47,7 @@ export interface GameEvents {
   'parcel:delivered': Record<string, never>;
   'achievement': { id: string };
   'autopilot': { active: boolean; target?: string };
+  'piko:said': { text: string; ms: number };
 }
 
 export type PanelKind =

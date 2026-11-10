@@ -9,6 +9,7 @@ import type RAPIER from '@dimforge/rapier3d-compat';
 import type { Mesh} from 'three';
 import { Group, Quaternion, Vector3, type Object3D } from 'three';
 import { PALETTE } from '../../config/palette';
+import { AIRPORT } from '../../config/world';
 import { content } from '../../content';
 import { bus } from '../../core/EventBus';
 import { tr } from '../../i18n';
@@ -17,7 +18,7 @@ import { Prop } from '../../physics/Props';
 import { Kit, box, cone, cyl, rbox, sphere } from '../../utils/modeling/Kit';
 import { Billboard } from '../Billboard';
 import { Zone, type ZoneAction, type ZoneTick } from './Zone';
-import { SurfaceFrame, addSensor, addStatic, makeMesh, type ZoneDeps } from './ZoneKit';
+import { SurfaceFrame, addSensor, addStatic, buildIsland, makeMesh, type ZoneDeps } from './ZoneKit';
 
 interface Balloon {
   body: RAPIER.RigidBody;
@@ -38,6 +39,9 @@ const _q = new Quaternion();
 const _up = new Vector3();
 const PARCEL_LIFE = 22;
 const MAX_PARCELS = 6;
+/** Pulau pos mungil di laut sebelah landasan (lihat content/world/zones.json). */
+const ISLAND_R = 18;
+const ISLAND_H = 1.8;
 
 export class PostOffice extends Zone {
   private frame!: SurfaceFrame;
@@ -57,16 +61,20 @@ export class PostOffice extends Zone {
 
   locate(deps: ZoneDeps): void {
     const z = content.get().zones.zones.find((x) => x.id === this.id);
-    this.frame = new SurfaceFrame(z?.lat ?? 5.4, z?.lon ?? 96.9, 120, deps.planet);
+    // Pintu kantor pos menghadap landasan (kanan dari arah lepas landas), supaya terlihat dari titik start.
+    this.frame = new SurfaceFrame(z?.lat ?? 10.03, z?.lon ?? 102.74, AIRPORT.headingDeg + 90, deps.planet, 0);
     this.center.copy(this.frame.origin);
-    this.poi.copy(this.frame.point(0, 28, 0));
-    deps.scatter.addExclusion(this.frame.dir, 20);
+    this.poi.copy(this.frame.point(0, ISLAND_H + 26, 0));
+    deps.scatter.addExclusion(this.frame.dir, ISLAND_R + 4);
   }
 
   protected build(): void {
     const mat = this.deps.material;
     const f = this.frame;
-    const ground = f.ground;
+    const ground = ISLAND_H;
+    const isl = buildIsland(f, this.deps, { radius: ISLAND_R, height: ISLAND_H, seed: 5150, plateau: 0.64 });
+    this.group.add(isl.mesh);
+    this.colliders.push(isl.collider);
     // Gedung pos mungil.
     const house = new Group();
     const k = new Kit();
@@ -81,7 +89,7 @@ export class PostOffice extends Zone {
     sign.object.position.set(0, 3.5, -3.28);
     sign.object.rotation.y = Math.PI;
     house.add(sign.object);
-    f.place(house, -12, 4, 0, 0, ground);
+    f.place(house, -5, 2.5, 0, 0, ground);
     this.group.add(house);
     this.bodies.push(addStatic(this.deps.physics, house, [{ half: [4, 2, 3], offset: [0, 2, 0] }, { half: [4.2, 1.4, 2.6], offset: [0, 4.6, 0] }], 'wood'));
 
@@ -109,7 +117,7 @@ export class PostOffice extends Zone {
     label.object.position.set(0, H * 0.62, -W / 2 - 0.13);
     label.object.rotation.y = Math.PI;
     box0.add(label.object);
-    f.place(box0, 8, -4, 0.4, 0, ground);
+    f.place(box0, 5.5, -1, 0.4, 0, ground);
     this.group.add(box0);
     this.bodies.push(
       addStatic(
@@ -140,8 +148,8 @@ export class PostOffice extends Zone {
     const colors: Record<string, string> = { sun: PALETTE.sun, leaf: PALETTE.leaf, sky: PALETTE.sky, berry: PALETTE.berry, ink: '#5D6178' };
     links.forEach((l, i) => {
       const a = (i / links.length) * Math.PI * 1.4 - 0.4;
-      const x = Math.cos(a) * 16;
-      const z = Math.sin(a) * 16 - 4;
+      const x = Math.cos(a) * 13;
+      const z = Math.sin(a) * 13 - 2;
       const g = new Group();
       const bk = new Kit();
       const col = colors[l.balloonColor ?? 'sky'] ?? PALETTE.sky;

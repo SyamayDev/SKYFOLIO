@@ -14,6 +14,9 @@ import { fatalError, paused } from './core/AppState';
 import { hasGraphicsSupport } from './core/Support';
 import { tr } from './i18n';
 import { bindActions } from './ui/bridge';
+import { wireUi } from './ui/glue';
+
+wireUi();
 
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const uiRoot = document.getElementById('ui') as HTMLElement;
@@ -43,6 +46,11 @@ async function start(): Promise<void> {
     click: () => exp.audio.sfx?.click(),
     requestGyro: () => exp.requestGyro(),
     addLook: (dx, dy) => exp.input.addLook(dx, dy, 'touch'),
+    flyTo: (dest) => exp.flyTo(dest),
+    cancelAutopilot: () => exp.cancelAutopilot(),
+    releaseLantern: () => exp.lantern.releaseLantern(),
+    paperPlane: () => exp.post.launchPaperPlane(),
+    hover: (on) => exp.hover(on),
   });
   if (import.meta.hot) import.meta.hot.dispose(() => exp.dispose());
 }

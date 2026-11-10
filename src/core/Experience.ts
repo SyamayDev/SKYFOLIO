@@ -9,8 +9,13 @@ import { CameraRig, type CameraTarget } from '../camera/CameraRig';
 import { CAMERA } from '../config/camera';
 import { BASE_WIND, HOME, PLANET_RADIUS } from '../config/world';
 import { PhysicsWorld } from '../physics/PhysicsWorld';
+import { Autopilot, type AutopilotTarget } from '../ai/Autopilot';
+import { AUTOPILOT } from '../config/flight';
+import { L, content } from '../content';
+import { pushToast } from '../ui/toasts';
+import { tr } from '../i18n';
 import { RadialGravity } from '../physics/RadialGravity';
-import { bearingDirection, headingOf, latLonToVec3 } from '../utils/geo';
+import { bearingDirection, headingOf, latLonToVec3, vec3ToLatLon } from '../utils/geo';
 import { createToonMaterial } from '../utils/modeling/materials';
 import { Atmosphere } from '../world/Atmosphere';
 import { Clouds } from '../world/Clouds';
@@ -47,10 +52,10 @@ import { ZoneManager, horizonVisible } from '../world/Zones/ZoneManager';
 import { detailCuller } from '../world/DetailCuller';
 import type { ZoneDeps } from '../world/Zones/ZoneKit';
 import { TutorialController } from '../ui/tutorial';
-import { appPhase, fade, fadeColor, hud, isPortrait, paused, preflight } from './AppState';
+import { appPhase, autopilotState, fade, fadeColor, hud, isPortrait, panel, paused, planeGeo, preflight } from './AppState';
 import { assetUrl, loadEarthAssets } from './Assets';
 import { createDebugPanel, isDebugEnabled } from './Debug';
-import { bus, type PreflightItemId } from './EventBus';
+import { bus, type PreflightItemId , type PanelKind } from './EventBus';
 import { Input } from './Input';
 import { FixedStepper } from './Loop';
 import { QualityManager } from './QualityManager';
@@ -60,6 +65,7 @@ import { Time } from './Time';
 
 const _v = new Vector3();
 const _w = new Vector3();
+const _apUp = new Vector3();
 const _hv = new Vector3();
 
 function markLoaded(id: PreflightItemId): void {
@@ -115,6 +121,8 @@ export class Experience {
   };
   private readonly assistImpulse = new Vector3();
   private moonTimer = 0;
+  autopilot!: Autopilot;
+  private readonly geo = { lat: 0, lon: 0 };
   particles!: Particles;
   feedback!: Feedback;
   tutorial!: TutorialController;
@@ -249,6 +257,7 @@ export class Experience {
     this.moon.place(this.sky.sunDir, new Date(), this.plane.position, true);
     this.landmarks = new WorldLandmarks(this.zoneDeps);
     this.scene.add(this.landmarks.group);
+    this.autopilot = new Autopilot((dir) => this.planet.heightAt(dir, 0));
     this.life = new AmbientLife(this.scene, this.planet, this.physics, this.particles, propMat, this.quality.tier);
     this.rig = new CameraRig(window.innerWidth / Math.max(1, window.innerHeight), this.physics);
     this.scene.add(this.rig.camera);
@@ -410,6 +419,7 @@ export class Experience {
       bearingDirection(this.plane.position, (BASE_WIND.fromBearingDeg + 180) % 360, this.wind).multiplyScalar(BASE_WIND.speed);
       this.plane.setWind(this.wind);
       this.plane.readInput(this.input, s.controls.assistLevel);
+      this.updateAutopilot();
       // Simulasi bisa dibekukan (tes/screenshot; dasar Mode Foto) sementara render & kamera tetap jalan.
       const alpha = this.simFrozen ? 1 : this.stepper.advance(dt, this.fixedStep);
       this.physics.interpolate(alpha);
@@ -506,6 +516,86 @@ export class Experience {
     this.input.endFrame();
   }
 
+  private updateAutopilot(): void {
+    const ap = this.autopilot;
+    if (!ap.active || !this.boarded) return;
+    const inp = this.input;
+    if (Math.abs(inp.pitch) + Math.abs(inp.roll) > AUTOPILOT.OVERRIDE_DEADZONE || inp.isDown('brake')) {
+      this.cancelAutopilot(true);
+      return;
+    }
+    _v.set(0, 0, -1).applyQuaternion(this.plane.quaternion);
+    _apUp.set(0, 1, 0).applyQuaternion(this.plane.quaternion);
+    const cmd = ap.update(this.plane.position, _v, _apUp, this.plane.velocity(_w), this.plane.ground.grounded);
+    if (cmd) this.plane.applyCommand(cmd);
+    else autopilotState.set({ active: false, target: null });
+  }
+
+  private hovering = false;
+  /** Melayang mengitari posisi sekarang selama panel terbuka (HP) — supaya tidak jatuh saat membaca. */
+  hover(on: boolean): void {
+    if (on) {
+      if (this.autopilot.active || this.plane.ground.grounded || !this.boarded) return;
+      this.hovering = true;
+      this.autopilot.engage({ id: 'hover', label: '', position: this.plane.position.clone(), hold: true, orbitRadius: 22, approachAgl: Math.max(14, this.plane.env.heightAboveGround) });
+      this.autopilot.arrived = true;
+    } else if (this.hovering) {
+      this.hovering = false;
+      if (this.autopilot.target?.id === 'hover') this.autopilot.cancel();
+    }
+  }
+
+  cancelAutopilot(byPlayer = false): void {
+    if (!this.autopilot.active) return;
+    this.autopilot.cancel();
+    autopilotState.set({ active: false, target: null });
+    bus.emit('autopilot', { active: false });
+    if (byPlayer) pushToast(tr('autopilot.takeover'), 'info', '🕹️');
+  }
+
+  /**
+   * Terbang otomatis ke tujuan: `zone:<id>`, `project:<id>`, `featured:<n>`, `landmark:<id>`, `space`, `moon`, `home`.
+   * Mengembalikan false bila tujuan tidak dikenal.
+   */
+  flyTo(dest: string, opts: { openPanel?: boolean; hold?: boolean; boost?: boolean } = {}): boolean {
+    const [kind, id = ''] = dest.split(':');
+    let target: AutopilotTarget | null = null;
+    const open = opts.openPanel !== false;
+    if (kind === 'zone' || kind === 'home') {
+      const z = this.zones.get(kind === 'home' ? 'home-airport' : id);
+      if (!z) return false;
+      if (z.id === 'moon') return this.flyTo('moon', opts);
+      if (z.id === 'orbit') return this.flyTo('space', opts);
+      target = { id: z.id, label: this.zones.zoneName(z.id), position: z.poi.clone(), onArrive: open ? () => bus.emit('panel:open', { kind: 'zone', id: z.id }) : undefined };
+    } else if (kind === 'project' || kind === 'featured') {
+      const list = content.get().projects;
+      const p = kind === 'featured' ? list.filter((x) => x.featured).sort((a, b) => (a.featuredRank ?? 99) - (b.featuredRank ?? 99))[Number(id) - 1] : list.find((x) => x.id === id);
+      if (!p) return false;
+      const pos = this.archipelago.islandPosition(p.id);
+      if (!pos) return false;
+      target = { id: p.id, label: p.title, position: pos, approachAgl: 16, onArrive: open ? () => bus.emit('panel:open', { kind: 'project', id: p.id }) : undefined };
+    } else if (kind === 'landmark') {
+      const pos = this.landmarks.position(id);
+      const lm = content.get().landmarks.landmarks.find((x) => x.id === id);
+      if (!pos || !lm) return false;
+      target = { id, label: L(lm.name), position: pos, approachAgl: 26 };
+    } else if (kind === 'space') {
+      const up = this.plane.position.clone().normalize();
+      target = { id: 'space', label: L(content.get().zones.zones.find((z) => z.id === 'orbit')?.name), position: up.multiplyScalar(PLANET_RADIUS), approachAgl: 240, boost: true };
+    } else if (kind === 'moon') {
+      target = { id: 'moon', label: L(content.get().zones.zones.find((z) => z.id === 'moon')?.name), position: this.moon.pad.clone(), approachAgl: 30, boost: true };
+    }
+    if (!target) return false;
+    // Tujuan di permukaan: setelah tiba, terus mengitari sampai pemain memegang kemudi (tidak jatuh ke laut).
+    if (opts.hold ?? (kind !== 'space' && kind !== 'moon')) target.hold = true;
+    if (opts.boost) target.boost = true;
+    this.autopilot.engage(target);
+    autopilotState.set({ active: true, target: target.label });
+    bus.emit('autopilot', { active: true, target: target.id });
+    pushToast(tr('autopilot.engaged', { target: target.label }), 'info', '🧭');
+    return true;
+  }
+
   /** Zona, landmark, kehidupan latar, bantuan Arus Perjalanan, aksi kontekstual. */
   private updateWorldSystems(dt: number, night: boolean): void {
     const t = this.zoneTick;
@@ -540,7 +630,10 @@ export class Experience {
     const act = this.zones.action(t);
     const label = act?.label ?? null;
     if (hud.get().action !== label) hud.patch({ action: label });
-    if (act && this.boarded && !paused.get() && this.input.wasPressed('interact')) act.run();
+    if (act && this.boarded && !paused.get() && !panel.get() && this.input.wasPressed('interact')) act.run();
+    if (this.boarded && !paused.get() && this.input.wasPressed('map')) panel.set(panel.get()?.kind === 'map' ? null : { kind: 'map' });
+    vec3ToLatLon(t.planePos, this.geo);
+    planeGeo.set({ lat: this.geo.lat, lon: this.geo.lon, heading: hud.get().heading });
   }
 
   private pushHud(): void {
@@ -633,6 +726,49 @@ export class Experience {
           tier: this.quality.tier,
         };
       },
+      /** Posisi zona dalam koordinat lokal bandara (along/side) — untuk memeriksa tabrakan tata letak. */
+      zonesLocal: () =>
+        Object.fromEntries(
+          this.zones.zones.map((z) => {
+            const o = { along: 0, side: 0 };
+            this.airport.frame.toLocal(z.center.clone().normalize(), o);
+            return [z.id, { along: +o.along.toFixed(1), side: +o.side.toFixed(1) }];
+          }).concat([
+            [
+              'plane',
+              (() => {
+                const o = { along: 0, side: 0 };
+                this.airport.frame.toLocal(this.plane.position.clone().normalize(), o);
+                return { along: +o.along.toFixed(1), side: +o.side.toFixed(1) };
+              })(),
+            ],
+          ]),
+        ),
+      /** Peta ASCII sekitar bandara: '#' darat, '~' laut, 'F' kolider statis, 'P' pesawat. */
+      asciiMap: (a0: number, a1: number, s0: number, s1: number, step: number) => {
+        const rows: string[] = [];
+        const v = new Vector3();
+        const statics: { a: number; s: number }[] = [];
+        for (const z of this.zones.zones) if (z.center.distanceTo(this.plane.position) < 120) z.ensureBuilt(this.zoneDeps);
+        this.physics.world.forEachCollider((c) => {
+          if (c.parent()?.bodyType() === 0 || c.isSensor() || c.shapeType() === 6) return;
+          const t = c.translation();
+          const lo = { along: 0, side: 0 };
+          this.airport.frame.toLocal(v.set(t.x, t.y, t.z).normalize(), lo);
+          statics.push({ a: lo.along, s: lo.side });
+        });
+        for (let sd = s1; sd >= s0; sd -= step) {
+          let row = `${String(sd).padStart(4)} `;
+          for (let al = a0; al <= a1; al += step) {
+            this.airport.frame.toWorld(al, sd, 0, v).normalize();
+            const h = this.planet.heightAt(v, -1);
+            const st = statics.some((q) => Math.abs(q.a - al) < step / 2 && Math.abs(q.s - sd) < step / 2);
+            row += st ? 'F' : h > 0.2 ? (h > 6 ? '^' : '#') : '~';
+          }
+          rows.push(row);
+        }
+        return rows.join(String.fromCharCode(10));
+      },
       perf: () => ({ fps: this.fps, ...this.renderer.info, physicsMs: this.physics.lastStepMs, scatter: this.scatter.kindCounts }),
       teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) =>
         this.teleport(lat, lon, alt, heading, speed),
@@ -646,6 +782,8 @@ export class Experience {
         this.updateCameraTarget();
         this.rig.snap(this.camTarget);
       },
+      openPanel: (kind: PanelKind, id?: string) => panel.set(id ? { kind, id } : { kind }),
+      autopilot: () => ({ active: this.autopilot.active, target: this.autopilot.target?.id ?? null }),
       freeze: (on: boolean) => {
         this.simFrozen = on;
       },

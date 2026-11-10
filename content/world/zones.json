@@ -12,7 +12,7 @@
     {
       "id": "control-tower",
       "name": { "id": "Menara Kontrol: Tentang Aril", "en": "Control Tower: About Aril" },
-      "lat": 3.85, "lon": 98.35, "radiusDeg": 1.5,
+      "lat": 3.658, "lon": 98.01, "radiusDeg": 1.5,
       "content": "profile",
       "music": "home",
       "features": ["atc-radio-bio", "photo-frames", "rotating-radar-dish", "beacon-light"]
@@ -20,7 +20,8 @@
     {
       "id": "post-office",
       "name": { "id": "Kantor Pos Udara: Kontak", "en": "Air Post Office: Contact" },
-      "lat": 5.4, "lon": 96.9, "radiusDeg": 2.5,
+      "lat": 10.03, "lon": 102.74, "radiusDeg": 2.5,
+      "placementNote": "Pulau pos kecil 40 unit di sisi laut (kiri) landasan, kelihatan dari titik start. Jangan diletakkan di area datar bandara.",
       "content": "socials + contact-form",
       "music": "home",
       "features": ["parcel-drop-mailbox", "social-balloons", "paper-plane-launcher"]

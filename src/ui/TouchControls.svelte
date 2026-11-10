@@ -91,8 +91,9 @@
     }
   }
 
-  function press(kind: 'jump' | 'horn'): void {
+  function press(kind: 'jump' | 'horn' | 'interact'): void {
     if (kind === 'jump') touchState.jumpQueued = true;
+    else if (kind === 'interact') touchState.actionQueued = true;
     else touchState.hornQueued = true;
     if (navigator.vibrate) navigator.vibrate(10);
   }
@@ -129,6 +130,17 @@
   ></div>
 
   <div class="buttons">
+    {#if $hud.action}
+      <button
+        class="btn ctx"
+        aria-label={$t($hud.action as never)}
+        onpointerdown={(e) => {
+          e.stopPropagation();
+          press('interact');
+        }}
+        data-testid="btn-ctx">{$t($hud.action as never)}</button
+      >
+    {/if}
     <button
       class="btn horn"
       aria-label={$t('hud.horn')}
@@ -287,6 +299,16 @@
     height: 68px;
     background: var(--panel-strong);
     font-size: 15px;
+  }
+  .ctx {
+    grid-column: 1 / -1;
+    min-width: 150px;
+    width: auto;
+    border-radius: 999px;
+    background: #2f8fa6;
+    color: #fff;
+    font: 700 15px var(--font-title);
+    padding: 0 16px;
   }
   .action {
     right: 18px;

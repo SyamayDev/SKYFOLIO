@@ -34,7 +34,7 @@ export class ControlTower extends Zone {
 
   locate(deps: ZoneDeps): void {
     const z = content.get().zones.zones.find((x) => x.id === this.id);
-    this.frame = new SurfaceFrame(z?.lat ?? 3.85, z?.lon ?? 98.35, 200, deps.planet);
+    this.frame = new SurfaceFrame(z?.lat ?? 3.658, z?.lon ?? 98.01, 200, deps.planet);
     this.center.copy(this.frame.origin);
     this.poi.copy(this.frame.point(0, 30, 0));
     deps.scatter.addExclusion(this.frame.dir, 16);

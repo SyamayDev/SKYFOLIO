@@ -2,6 +2,10 @@
   import { appPhase, fade, fadeColor, fatalError, inputDevice, isPortrait, paused } from '../core/AppState';
   import { t } from '../i18n';
   import Hud from './Hud.svelte';
+  import Overlays from './Overlays.svelte';
+  import Panels from './Panels.svelte';
+  import Radar from './Radar.svelte';
+  import { panel } from '../core/AppState';
   import Pause from './Pause.svelte';
   import Preflight from './Preflight.svelte';
   import Toasts from './Toasts.svelte';
@@ -21,6 +25,8 @@
 {:else}
   {#if flying}
     <Hud />
+    <Radar />
+    <Overlays />
     {#if $inputDevice === 'touch' && !$paused}<TouchControls />{/if}
     {#if !$paused}<Tutorial />{/if}
     <Toasts />
@@ -28,6 +34,7 @@
       <button class="rotate" onclick={() => (rotateDismissed = true)}>📱↻ {$t('hud.rotateHint')} ✕</button>
     {/if}
     {#if $paused}<Pause />{/if}
+    {#if !$paused && $panel}<Panels />{/if}
   {:else}
     <Preflight />
   {/if}

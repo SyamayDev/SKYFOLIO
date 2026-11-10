@@ -5,6 +5,12 @@
   import { locale, t } from '../i18n';
   import { formatNumber, toMeters } from '../utils/format';
   import { actions } from './bridge';
+  import { panel } from '../core/AppState';
+
+  function openPanel(kind: 'map' | 'passport'): void {
+    actions.click();
+    panel.set({ kind });
+  }
 
   const debug = isDebugEnabled();
   let compassOffset = $derived(-($hud.heading / 360) * 720);
@@ -46,6 +52,8 @@
   </div>
 
   <div class="buttons">
+    <button class="round" onclick={() => openPanel('map')} aria-label={$t('hud.map')} title={$t('hud.map')} data-testid="open-map">🗺️</button>
+    <button class="round" onclick={() => openPanel('passport')} aria-label={$t('hud.passport')} title={$t('hud.passport')} data-testid="open-passport">🛂</button>
     <button class="round" onclick={toggleCamera} aria-label={$t('hud.camera')} title={$t('hud.camera')}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2h6l2 2h3v11H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="2" /></svg>
     </button>
