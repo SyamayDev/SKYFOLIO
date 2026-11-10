@@ -63,14 +63,3 @@ export class Renderer {
     this.three.dispose();
   }
 }
-
-/** Cek dukungan grafis minimum (WebGPU atau WebGL2). */
-export function hasGraphicsSupport(): boolean {
-  try {
-    if ('gpu' in navigator) return true;
-    const c = document.createElement('canvas');
-    return !!c.getContext('webgl2');
-  } catch {
-    return false;
-  }
-}

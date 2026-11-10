@@ -15,6 +15,7 @@ type Hooks = {
   ready: boolean;
   teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) => void;
   camera: (mode: 'chase' | 'cockpit') => void;
+  freeze: (on: boolean) => void;
 };
 
 async function hooks(page: Page, fn: (h: Hooks) => void): Promise<void> {
@@ -42,21 +43,33 @@ for (const vp of VIEWPORTS) {
       await shot('3-lepas-landas');
       await page.keyboard.up('KeyW');
       // Terbang rendah mendekati Danau Toba (planet kecil: 30 unit/dtk ≈ 4°/dtk, jadi foto cepat).
-      await hooks(page, (h) => h.teleport(1.75, 100.05, 16, 315, 20));
-      await page.waitForTimeout(700);
+      await hooks(page, (h) => {
+        h.teleport(3.0, 99.3, 16, 220, 30);
+        h.freeze(true);
+      });
+      await page.waitForTimeout(600);
       await shot('4-terbang-toba');
       // Kokpit
       await hooks(page, (h) => h.camera('cockpit'));
       await page.waitForTimeout(1200);
       await shot('5-kokpit');
-      await hooks(page, (h) => h.camera('chase'));
+      await hooks(page, (h) => {
+        h.camera('chase');
+        h.freeze(false);
+      });
       // Tinggi di atas Indonesia
-      await hooks(page, (h) => h.teleport(-6, 106, 120, 20, 45));
-      await page.waitForTimeout(1500);
+      await hooks(page, (h) => {
+        h.teleport(-6, 106, 120, 20, 45);
+        h.freeze(true);
+      });
+      await page.waitForTimeout(800);
       await shot('6-tinggi');
       // Melewati kutub utara
-      await hooks(page, (h) => h.teleport(88, 30, 35, 0, 36));
-      await page.waitForTimeout(1200);
+      await hooks(page, (h) => {
+        h.teleport(88, 30, 35, 0, 36);
+        h.freeze(true);
+      });
+      await page.waitForTimeout(800);
       await shot('7-kutub');
       // Menu jeda + pengaturan
       await page.keyboard.press('Escape');

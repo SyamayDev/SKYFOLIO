@@ -11,8 +11,7 @@ import './ui/theme.css';
 import { mount } from 'svelte';
 import App from './ui/App.svelte';
 import { fatalError, paused } from './core/AppState';
-import { hasGraphicsSupport } from './core/Renderer';
-import { Input } from './core/Input';
+import { hasGraphicsSupport } from './core/Support';
 import { tr } from './i18n';
 import { bindActions } from './ui/bridge';
 
@@ -42,7 +41,7 @@ async function start(): Promise<void> {
     },
     skipTutorial: () => exp.tutorial.skip(),
     click: () => exp.audio.sfx?.click(),
-    requestGyro: () => Input.requestGyroPermission(),
+    requestGyro: () => exp.requestGyro(),
     addLook: (dx, dy) => exp.input.addLook(dx, dy, 'touch'),
   });
   if (import.meta.hot) import.meta.hot.dispose(() => exp.dispose());

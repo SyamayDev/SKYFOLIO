@@ -11,9 +11,17 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'es2022',
-    // Rapier menyematkan wasm sebagai base64, jadi chunk-nya memang besar.
-    chunkSizeWarningLimit: 2600,
+    // Rapier (compat) menyematkan wasm ±3 MB sebagai base64, jadi chunk-nya memang besar (lihat docs/decisions.md).
+    chunkSizeWarningLimit: 4600,
     rollupOptions: {
+      output: {
+        // Pisahkan pustaka besar supaya diunduh paralel dan di-cache terpisah dari kode kita.
+        manualChunks(id: string) {
+          if (id.includes('@dimforge/rapier3d')) return 'rapier';
+          if (id.includes('/node_modules/three/')) return 'three';
+          return undefined;
+        },
+      },
       input: {
         main: resolve(root, 'index.html'),
         ringkas: resolve(root, 'ringkas/index.html'),

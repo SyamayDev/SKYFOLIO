@@ -82,6 +82,8 @@ export class Experience {
     cockpitEye: new Vector3(),
   };
   private respawnTimer = -1;
+  /** Fisika dibekukan (render tetap jalan). */
+  simFrozen = false;
   private readonly unsubs: (() => void)[] = [];
   private running = false;
   boarded = false;
@@ -285,13 +287,14 @@ export class Experience {
     }
 
     if (!isPaused) {
-      this.time.advance(dt);
+      if (!this.simFrozen) this.time.advance(dt);
       const s = settings.get();
       // Angin dasar (arah dari timur laut) di posisi pesawat.
       bearingDirection(this.plane.position, (BASE_WIND.fromBearingDeg + 180) % 360, this.wind).multiplyScalar(BASE_WIND.speed);
       this.plane.setWind(this.wind);
       this.plane.readInput(this.input, s.controls.assistLevel);
-      const alpha = this.stepper.advance(dt, this.fixedStep);
+      // Simulasi bisa dibekukan (tes/screenshot; dasar Mode Foto) sementara render & kamera tetap jalan.
+      const alpha = this.simFrozen ? 1 : this.stepper.advance(dt, this.fixedStep);
       this.physics.interpolate(alpha);
 
       // Respawn tertunda (fade 0,4 detik).
@@ -339,8 +342,8 @@ export class Experience {
         },
         now2,
       );
-      // Aril & Piko tetap terlihat di mode kokpit kecuali kepala Aril (supaya tidak menutupi pandangan).
-      this.plane.aril.parts.head.visible = this.rig.mode !== 'cockpit';
+      // Mode kokpit: kamera berada di posisi mata Aril, jadi model Aril disembunyikan (Piko tetap ada di belakang).
+      this.plane.aril.root.visible = this.rig.mode !== 'cockpit';
 
       const st = this.plane.flight.state;
       this.audio.engine?.update(
@@ -411,6 +414,13 @@ export class Experience {
     });
   }
 
+  /** Izin sensor gerak (iOS) — dipanggil dari ketukan pengguna di Pengaturan. */
+  async requestGyro(): Promise<'granted' | 'denied' | 'unavailable'> {
+    const res = await Input.requestGyroPermission();
+    if (res === 'granted') this.input.recalibrateGyro();
+    return res;
+  }
+
   requestRespawn(): void {
     if (this.respawnTimer >= 0) return;
     this.respawnTimer = 0;
@@ -468,7 +478,9 @@ export class Experience {
         this.updateCameraTarget();
         this.rig.snap(this.camTarget);
       },
-      events: [] as string[],
+      freeze: (on: boolean) => {
+        this.simFrozen = on;
+      },
       respawn: () => this.plane.respawn('manual'),
       camera: (mode: 'chase' | 'cockpit') => updateSettings('camera', { mode }),
       orbitCamera: (yaw: number, pitch: number) => this.rig.look(-yaw / CAMERA.ORBIT_SENS_MOUSE, pitch / CAMERA.ORBIT_SENS_MOUSE, CAMERA.ORBIT_SENS_MOUSE, performance.now() / 1000 + 60),
