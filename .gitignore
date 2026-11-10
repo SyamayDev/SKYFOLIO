@@ -22,3 +22,7 @@ tests/e2e/.artifacts/
 Thumbs.db
 *.log
 .vercel
+
+# Gambar referensi Aril: hanya untuk dilihat lokal (lisensi tidak jelas), tidak di-commit
+docs/references/*
+!docs/references/README.md
