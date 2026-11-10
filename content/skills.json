@@ -1,52 +1,168 @@
 {
   "levelScale": {
-    "1": { "id": "Pemula", "en": "Beginner" },
-    "2": { "id": "Dasar", "en": "Basic" },
-    "3": { "id": "Menengah", "en": "Intermediate" },
-    "4": { "id": "Mahir", "en": "Advanced" },
-    "5": { "id": "Ahli", "en": "Expert" }
+    "1": {
+      "id": "Pemula",
+      "en": "Beginner"
+    },
+    "2": {
+      "id": "Dasar",
+      "en": "Basic"
+    },
+    "3": {
+      "id": "Menengah",
+      "en": "Intermediate"
+    },
+    "4": {
+      "id": "Mahir",
+      "en": "Advanced"
+    },
+    "5": {
+      "id": "Ahli",
+      "en": "Expert"
+    }
   },
   "note": "Skill bertanda source=github-sync diisi otomatis oleh scripts/sync-github.ts dari bahasa repo publik. Level hasil sinkron = 3 sampai Aril mengubahnya. Jangan menaikkan level tanpa persetujuan Aril.",
   "groups": [
     {
       "id": "languages",
-      "label": { "id": "Bahasa Pemrograman", "en": "Programming Languages" },
+      "label": {
+        "id": "Bahasa Pemrograman",
+        "en": "Programming Languages"
+      },
       "skills": [
-        { "id": "javascript", "name": "JavaScript", "level": 5, "source": "aril" },
-        { "id": "php", "name": "PHP", "level": 5, "source": "aril" },
-        { "id": "sql", "name": "SQL", "level": 5, "source": "aril" },
-        { "id": "pascal", "name": "Pascal (Free Pascal)", "level": 3, "source": "project:si-pandri", "needsConfirmation": true }
+        {
+          "id": "javascript",
+          "name": "JavaScript",
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "php",
+          "name": "PHP",
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "sql",
+          "name": "SQL",
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "pascal",
+          "name": "Pascal (Free Pascal)",
+          "level": 3,
+          "source": "project:si-pandri",
+          "needsConfirmation": true
+        },
+        {
+          "id": "html",
+          "name": "HTML",
+          "level": 3,
+          "source": "github-sync"
+        },
+        {
+          "id": "css",
+          "name": "CSS",
+          "level": 3,
+          "source": "github-sync"
+        }
       ]
     },
     {
       "id": "frameworks",
-      "label": { "id": "Framework & Library", "en": "Frameworks & Libraries" },
+      "label": {
+        "id": "Framework & Library",
+        "en": "Frameworks & Libraries"
+      },
       "skills": [
-        { "id": "react", "name": "React", "level": 5, "source": "aril" },
-        { "id": "laravel", "name": "Laravel", "level": 5, "source": "aril" },
-        { "id": "codeigniter", "name": "CodeIgniter", "level": 5, "source": "aril" }
+        {
+          "id": "react",
+          "name": "React",
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "laravel",
+          "name": "Laravel",
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "codeigniter",
+          "name": "CodeIgniter",
+          "level": 5,
+          "source": "aril"
+        }
       ]
     },
     {
       "id": "data-cloud",
-      "label": { "id": "Database & Cloud", "en": "Database & Cloud" },
+      "label": {
+        "id": "Database & Cloud",
+        "en": "Database & Cloud"
+      },
       "skills": [
-        { "id": "supabase", "name": "Supabase", "level": 5, "source": "aril" }
+        {
+          "id": "supabase",
+          "name": "Supabase",
+          "level": 5,
+          "source": "aril"
+        }
       ]
     },
     {
       "id": "tools",
-      "label": { "id": "Tools", "en": "Tools" },
+      "label": {
+        "id": "Tools",
+        "en": "Tools"
+      },
       "skills": []
     },
     {
       "id": "soft",
-      "label": { "id": "Soft Skill", "en": "Soft Skills" },
+      "label": {
+        "id": "Soft Skill",
+        "en": "Soft Skills"
+      },
       "skills": [
-        { "id": "public-speaking", "name": { "id": "Public Speaking", "en": "Public Speaking" }, "level": 5, "source": "aril" },
-        { "id": "mc", "name": { "id": "Master of Ceremony (MC)", "en": "Master of Ceremonies (MC)" }, "level": 5, "source": "aril" },
-        { "id": "speaker", "name": { "id": "Pemateri / Pembicara", "en": "Speaker / Trainer" }, "level": 5, "source": "aril" },
-        { "id": "leadership", "name": { "id": "Kepemimpinan", "en": "Leadership" }, "level": 4, "source": "timeline:iteens", "needsConfirmation": true }
+        {
+          "id": "public-speaking",
+          "name": {
+            "id": "Public Speaking",
+            "en": "Public Speaking"
+          },
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "mc",
+          "name": {
+            "id": "Master of Ceremony (MC)",
+            "en": "Master of Ceremonies (MC)"
+          },
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "speaker",
+          "name": {
+            "id": "Pemateri / Pembicara",
+            "en": "Speaker / Trainer"
+          },
+          "level": 5,
+          "source": "aril"
+        },
+        {
+          "id": "leadership",
+          "name": {
+            "id": "Kepemimpinan",
+            "en": "Leadership"
+          },
+          "level": 4,
+          "source": "timeline:iteens",
+          "needsConfirmation": true
+        }
       ]
     }
   ]

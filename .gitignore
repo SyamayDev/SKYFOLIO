@@ -26,3 +26,6 @@ Thumbs.db
 # Gambar referensi Aril: hanya untuk dilihat lokal (lisensi tidak jelas), tidak di-commit
 docs/references/*
 !docs/references/README.md
+
+# Hasil generator konten (dibuat ulang saat dev/build)
+src/content/_generated/

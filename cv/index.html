@@ -1,23 +1,151 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CV — Syahril Maimubdy</title>
+    <meta name="description" content="CV Syahril Maimubdy (Aril), mahasiswa Ilmu Komputer Universitas Sumatera Utara." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        var d = document.documentElement;
+        var q = new URLSearchParams(location.search).get('lang');
+        d.dataset.lang = q === 'en' ? 'en' : 'id';
+        d.lang = d.dataset.lang;
+      })();
+    </script>
     <style>
+      @page {
+        size: A4;
+        margin: 14mm 15mm;
+      }
+      [data-l] {
+        display: none;
+      }
+      html[data-lang='id'] [data-l='id'],
+      html[data-lang='en'] [data-l='en'] {
+        display: revert;
+      }
       body {
-        font-family: system-ui, sans-serif;
-        max-width: 720px;
-        margin: 40px auto;
-        padding: 0 16px;
-        color: #2b2d42;
+        margin: 0;
+        background: #eef3f8;
+        color: #22243a;
+        font: 10.5pt/1.45 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
+      }
+      .cv {
+        max-width: 190mm;
+        margin: 16px auto;
+        background: #fff;
+        padding: 14mm 15mm;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      }
+      header {
+        border-bottom: 3px solid #ffc93c;
+        padding-bottom: 8px;
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-family: 'Fredoka', 'Nunito Sans', system-ui, sans-serif;
+        font-size: 24pt;
+        margin: 0;
+        letter-spacing: 0.3px;
+      }
+      .role {
+        margin: 2px 0 6px;
+        color: #3a3d55;
+        font-weight: 700;
+      }
+      .contact {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 16px;
+        font-size: 9.5pt;
+      }
+      .contact span {
+        color: #6a6e86;
+      }
+      a {
+        color: #1f74c9;
+        text-decoration: none;
+      }
+      h2 {
+        font-family: 'Fredoka', 'Nunito Sans', system-ui, sans-serif;
+        font-size: 12.5pt;
+        color: #1f74c9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 14px 0 6px;
+        border-bottom: 1px solid #dce6f2;
+        padding-bottom: 2px;
+      }
+      .entry {
+        margin: 0 0 8px;
+        break-inside: avoid;
+      }
+      .entry-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .when {
+        color: #6a6e86;
+        white-space: nowrap;
+        font-size: 9.5pt;
+      }
+      .org {
+        color: #4a4e66;
+        font-style: italic;
+      }
+      p {
+        margin: 2px 0;
+      }
+      .skills {
+        margin: 3px 0;
+      }
+      .toolbar {
+        max-width: 190mm;
+        margin: 16px auto 0;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .toolbar a,
+      .toolbar button {
+        font: 700 14px system-ui, sans-serif;
+        background: #ffc93c;
+        color: #22243a;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        min-height: 44px;
+        cursor: pointer;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .cv {
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+          max-width: none;
+        }
+        .toolbar {
+          display: none;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>CV</h1>
-    <p>Halaman CV siap cetak dibuat otomatis dari folder <code>content/</code> di Fase 1.</p>
-    <p><a href="/">← SKYFOLIO</a></p>
+    <nav class="toolbar" aria-label="CV">
+      <a href="/">← SKYFOLIO</a>
+      <a href="?lang=id">Bahasa Indonesia</a>
+      <a href="?lang=en">English</a>
+      <button type="button" onclick="window.print()">🖨 Cetak / Print</button>
+    </nav>
+    <!--SKYFOLIO:CV-->
   </body>
 </html>

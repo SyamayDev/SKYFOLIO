@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'node:path';
+import { contentPlugin } from './scripts/vite-plugin-content';
 
 const root = import.meta.dirname;
 
 export default defineConfig(({ command }) => ({
-  plugins: [svelte()],
+  plugins: [svelte(), contentPlugin()],
   server: {
     port: 5173,
   },
