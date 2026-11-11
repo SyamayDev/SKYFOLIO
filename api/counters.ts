@@ -3,8 +3,8 @@
  * Kawah Nekat (Phoenix tiap kelipatan 100), kunjungan. Input dijepit & dibatasi supaya tidak bisa digelembungkan.
  */
 import { z } from 'zod';
-import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http';
-import { getStore } from './_lib/ratelimit';
+import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http.js';
+import { getStore } from './_lib/ratelimit.js';
 
 const Body = z.object({ event: z.enum(['visit', 'flight', 'km', 'dive']), km: z.number().min(0).max(500).optional() });
 

@@ -6,7 +6,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import type { ZodError } from 'zod';
-import { markdownToHtml, markdownToText, splitStory } from '../../src/content/markdown';
+import { markdownToHtml, markdownToText, splitStory } from '../../src/content/markdown.ts';
 import {
   CONTENT_FILES,
   ProjectSchema,
@@ -14,8 +14,8 @@ import {
   type MediaImage,
   type Project,
   type SiteContent,
-} from '../../src/content/schema';
-import { YamlError, splitFrontmatter } from '../../src/content/yaml';
+} from '../../src/content/schema.ts';
+import { YamlError, splitFrontmatter } from '../../src/content/yaml.ts';
 
 export const ROOT = resolve(import.meta.dirname, '../..');
 export const CONTENT_DIR = resolve(ROOT, 'content');

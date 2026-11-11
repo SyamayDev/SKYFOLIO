@@ -12,6 +12,8 @@ export interface Store {
   /** Tambah ke depan daftar & potong ke `max` item. */
   lpushTrim(key: string, value: string, max: number): Promise<void>;
   lrange(key: string, n: number): Promise<string[]>;
+  /** Hapus semua item daftar yang sama persis dengan `value`. */
+  lrem(key: string, value: string): Promise<void>;
   /** Sorted set (leaderboard). */
   zadd(key: string, score: number, member: string): Promise<void>;
   zrange(key: string, n: number): Promise<{ member: string; score: number }[]>;
@@ -54,6 +56,9 @@ class MemoryStore implements Store {
   }
   async lrange(key: string, n: number): Promise<string[]> {
     return (this.lists.get(key) ?? []).slice(0, n);
+  }
+  async lrem(key: string, value: string): Promise<void> {
+    this.lists.set(key, (this.lists.get(key) ?? []).filter((v) => v !== value));
   }
   async zadd(key: string, score: number, member: string): Promise<void> {
     const z = this.zsets.get(key) ?? new Map<string, number>();
@@ -112,6 +117,9 @@ class UpstashStore implements Store {
   async lrange(key: string, n: number): Promise<string[]> {
     const [v] = await this.pipe([['LRANGE', key, 0, n - 1]]);
     return Array.isArray(v) ? v.map(String) : [];
+  }
+  async lrem(key: string, value: string): Promise<void> {
+    await this.pipe([['LREM', key, 0, value]]);
   }
   async zadd(key: string, score: number, member: string): Promise<void> {
     // LT: hanya perbarui bila waktu baru lebih cepat (skor lebih kecil = lebih baik).

@@ -45,7 +45,7 @@
     padding: 6px 16px 6px 6px;
     font-family: var(--font-title);
     font-weight: 600;
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale, 1));
     line-height: 1.25;
     box-shadow: var(--shadow);
     display: flex;
@@ -81,7 +81,7 @@
   }
   @media (max-width: 560px) {
     .toast {
-      font-size: 14px;
+      font-size: calc(14px * var(--text-scale, 1));
     }
   }
   @media (prefers-reduced-motion: reduce) {

@@ -175,7 +175,7 @@
     place-items: center;
     background: linear-gradient(135deg, #2f8fa6, #3aa0ff);
     color: #fff;
-    font-size: 40px;
+    font-size: calc(40px * var(--text-scale, 1));
   }
   .skill {
     display: flex;
@@ -185,7 +185,7 @@
   }
   .lvl {
     color: #e8a33d;
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale, 1));
     font-weight: 700;
     white-space: nowrap;
   }

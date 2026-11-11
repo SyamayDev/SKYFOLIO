@@ -56,6 +56,32 @@ export const QUALITY: Record<QualityTier, QualityPreset> = {
   },
 };
 
+/** Skenario terbang otomatis `?autotest=1` (docs/11 bagian 3): rute + batas waktu per kaki (detik). */
+export const AUTOTEST = {
+  START_DELAY: 1.5,
+  LEGS: [
+    { dest: 'featured:1', cap: 45 },
+    { dest: 'zone:skill-peaks', cap: 45 },
+    { dest: 'space', cap: 50 },
+    { dest: 'home', cap: 60 },
+  ],
+  /** Kaki dianggap selesai paling cepat setelah ini (autopilot butuh waktu mengunci tujuan). */
+  MIN_LEG: 4,
+  /** Kapasitas rekaman waktu frame (±4 menit di 120 fps), dialokasikan sekali. */
+  MAX_FRAMES: 32768,
+  /**
+   * Anggaran docs/11 bagian 1: rata-rata sepanjang rute (`drawCalls`, `triangles`) dan puncak sesaat
+   * (`peakDrawCalls`). High/Ultra: puncak pun ≤ 250 (aturan CLAUDE.md). Low/Medium: puncak sesaat terjadi saat
+   * masuk atmosfer dari orbit (separuh planet + efek roket terlihat).
+   */
+  BUDGET: {
+    low: { drawCalls: 120, peakDrawCalls: 180, triangles: 300_000 },
+    medium: { drawCalls: 180, peakDrawCalls: 220, triangles: 600_000 },
+    high: { drawCalls: 250, peakDrawCalls: 250, triangles: 1_000_000 },
+    ultra: { drawCalls: 250, peakDrawCalls: 250, triangles: 1_000_000 },
+  },
+} as const;
+
 export const QUALITY_AUTO = {
   /** Rata-rata fps diukur dalam jendela ini (detik). */
   DOWN_WINDOW: 3,

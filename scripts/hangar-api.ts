@@ -9,7 +9,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { dirname, join, normalize, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import type { ViteDevServer } from 'vite';
-import { CONTENT_DIR, ROOT, loadContent } from './lib/content';
+import { CONTENT_DIR, ROOT, loadContent } from './lib/content.ts';
 
 const run = promisify(execFile);
 const MAX_BODY = 25 * 1024 * 1024;

@@ -4,11 +4,11 @@
  * dibatasi lajunya per IP (hash + garam) dan global per hari.
  */
 import { z } from 'zod';
-import { COPILOT_NAME, IDS, KNOWLEDGE } from './_generated/knowledge';
-import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http';
-import { providersFromEnv, runChain, type ChatMsg, type Provider } from './_lib/providers';
-import { allow } from './_lib/ratelimit';
-import { MAX_REPLY_CHARS, systemPrompt } from './_lib/systemPrompt';
+import { COPILOT_NAME, IDS, KNOWLEDGE } from './_generated/knowledge.js';
+import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http.js';
+import { providersFromEnv, runChain, type ChatMsg, type Provider } from './_lib/providers.js';
+import { allow } from './_lib/ratelimit.js';
+import { MAX_REPLY_CHARS, systemPrompt } from './_lib/systemPrompt.js';
 
 const Body = z.object({
   message: z.string().trim().min(1).max(300),

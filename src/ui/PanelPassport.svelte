@@ -78,21 +78,21 @@
     color: var(--c);
     display: grid;
     place-items: center;
-    font-size: 24px;
+    font-size: calc(24px * var(--text-scale, 1));
     background: color-mix(in srgb, var(--c) 10%, transparent);
   }
   .small .ring {
     width: 52px;
     height: 52px;
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale, 1));
   }
   .name {
-    font: 600 11.5px var(--font-title);
+    font: 600 calc(11.5px * var(--text-scale, 1)) var(--font-title);
     line-height: 1.15;
     color: var(--ink);
   }
   .date {
-    font-size: 10.5px;
+    font-size: calc(10.5px * var(--text-scale, 1));
     color: var(--c);
     font-weight: 700;
   }

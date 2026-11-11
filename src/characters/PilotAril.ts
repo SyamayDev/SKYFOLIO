@@ -8,7 +8,7 @@ import { EXTRA, PALETTE } from '../config/palette';
 import { Kit, rbox } from '../utils/modeling/Kit';
 import { clamp, damp } from '../utils/math';
 import { wobble } from '../utils/noise';
-import { aviatorHelmet, buildChibi, mesh, type ChibiParts } from './Chibi';
+import { aviatorHelmet, buildChibi, mesh, type ChibiParts, bakeIntoHead } from './Chibi';
 
 const SCARF_SEGMENTS = 5;
 const SEG_LEN = 0.13;
@@ -51,6 +51,8 @@ export class PilotAril {
     this.root = this.parts.root;
     this.root.name = 'pilot-aril';
     this.parts.head.add(aviatorHelmet(r, mat));
+    // Wajah & helm Aril tidak dianimasikan → digabung ke mesh kepala (hemat 6 draw call).
+    bakeIntoHead(this.parts, ['eye', 'brow', 'mouth', 'helmet']);
 
     // Syal (berry) — rantai segmen, dimulai dari leher bagian belakang.
     const anchor = new Group();

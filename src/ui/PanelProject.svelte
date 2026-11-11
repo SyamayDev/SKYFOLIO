@@ -87,7 +87,7 @@
     margin-bottom: 12px;
     display: grid;
     place-items: center;
-    font: 700 54px var(--font-title);
+    font: 700 calc(54px * var(--text-scale, 1)) var(--font-title);
     color: #fff;
     background: linear-gradient(135deg, #ffc93c, #e5484d 55%, #2f8fa6);
   }
@@ -98,7 +98,7 @@
     margin: 8px 0;
   }
   .meta dt {
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale, 1));
     color: var(--panel-ink);
     text-transform: uppercase;
     letter-spacing: 0.6px;

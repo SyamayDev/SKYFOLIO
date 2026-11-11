@@ -13,10 +13,15 @@ import App from './ui/App.svelte';
 import { fatalError, paused } from './core/AppState';
 import { hasGraphicsSupport } from './core/Support';
 import { tr } from './i18n';
+import { startTour } from './ai/RecruiterTour';
 import { bindActions } from './ui/bridge';
 import { wireUi } from './ui/glue';
+import { wireTabTitle } from './ui/tabTitle';
+import { wireA11y } from './ui/a11y';
 
 wireUi();
+wireTabTitle();
+wireA11y();
 
 // Alat pengembang: dengarkan setiap tema & lapisan musik secara terpisah (docs/05).
 if (location.hash === '#debug-music') void import('./audio/MusicEngine/DebugMusic').then((m) => m.mountDebugMusic());
@@ -58,7 +63,7 @@ async function start(): Promise<void> {
     },
     paperPlane: () => exp.post.launchPaperPlane(),
     hover: (on) => exp.hover(on),
-    startTour: () => void import('./ai/RecruiterTour').then((m) => m.startTour()),
+    startTour: () => startTour(),
     setWeather: (kind) => {
       exp.weather.force = kind === 'real' ? null : kind;
     },

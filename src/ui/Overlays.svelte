@@ -76,7 +76,7 @@
   }
   .banner p {
     margin: 4px 0 0;
-    font: 700 16px var(--font-title);
+    font: 700 calc(16px * var(--text-scale, 1)) var(--font-title);
     color: var(--ink);
     background: var(--sun);
     display: inline-block;
@@ -129,7 +129,7 @@
     padding: 8px 16px;
     border-radius: 14px;
     max-width: min(720px, 92vw);
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale, 1));
     text-align: center;
     pointer-events: none;
   }
@@ -145,11 +145,11 @@
     padding: 8px 14px;
     display: grid;
     text-align: right;
-    font: 600 13px var(--font-title);
+    font: 600 calc(13px * var(--text-scale, 1)) var(--font-title);
     box-shadow: var(--shadow);
   }
   .race .time {
-    font-size: 30px;
+    font-size: calc(30px * var(--text-scale, 1));
   }
   .race.invalid .time {
     color: #e5484d;
@@ -167,7 +167,7 @@
     background: var(--panel-strong);
     border-radius: 999px;
     padding: 6px 16px 6px 8px;
-    font: 600 16px var(--font-title);
+    font: 600 calc(16px * var(--text-scale, 1)) var(--font-title);
     display: flex;
     gap: 10px;
     align-items: center;

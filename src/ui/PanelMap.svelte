@@ -11,6 +11,8 @@
   import { progress } from '../game/Progress';
   import { locale, t } from '../i18n';
   import { actions } from './bridge';
+  import { settings } from '../core/Settings';
+  import { OKABE_ITO } from './a11y';
 
   let { onclose }: { onclose: () => void } = $props();
   let canvas = $state<HTMLCanvasElement | null>(null);
@@ -109,7 +111,8 @@
       if (!p.front) continue;
       // Lencana bulat + ikon vektor (sama di semua perangkat, tidak bergantung font emoji).
       const rad = pt.big ? 13 : pt.icon === 'pin' ? 4 : 9;
-      g.fillStyle = pt.big ? '#FFF6E6' : pt.icon === 'island' ? '#FFC93C' : pt.icon === 'camera' ? '#3DCB7A' : '#FFFFFF';
+      const cb = $settings.accessibility.colorblindFriendlyMarkers;
+      g.fillStyle = pt.big ? '#FFF6E6' : pt.icon === 'island' ? (cb ? OKABE_ITO[0] : '#FFC93C') : pt.icon === 'camera' ? (cb ? OKABE_ITO[2] : '#3DCB7A') : '#FFFFFF';
       g.beginPath();
       g.arc(p.x, p.y, rad, 0, Math.PI * 2);
       g.fill();
@@ -235,7 +238,7 @@
   }
   .quick .p-btn {
     min-height: 40px;
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale, 1));
     padding: 6px 12px 6px 8px;
     gap: 6px;
   }

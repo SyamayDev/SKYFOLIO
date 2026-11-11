@@ -10,7 +10,7 @@ import { CAMERA } from '../config/camera';
 import { HOME, PLANET_RADIUS } from '../config/world';
 import { PhysicsWorld } from '../physics/PhysicsWorld';
 import { Autopilot, type AutopilotTarget } from '../ai/Autopilot';
-import { AUTOPILOT } from '../config/flight';
+import { AUTOPILOT, SPACE } from '../config/flight';
 import { L, content } from '../content';
 import { pushToast } from '../ui/toasts';
 import { tr } from '../i18n';
@@ -69,9 +69,10 @@ import { assetUrl, loadEarthAssets } from './Assets';
 import { createDebugPanel, isDebugEnabled } from './Debug';
 import { bus, type PreflightItemId , type PanelKind } from './EventBus';
 import { Input } from './Input';
+import { AutoTest } from './AutoTest';
 import { FixedStepper } from './Loop';
 import { QualityManager } from './QualityManager';
-import { Renderer, type PostMode } from './Renderer';
+import { Renderer, webgpuAvailable, type PostMode } from './Renderer';
 import { reducedMotionActive, settings, updateSettings } from './Settings';
 import { Time } from './Time';
 
@@ -155,6 +156,7 @@ export class Experience {
   private fpsFrames = 0;
   private fpsTime = 0;
   private fps = 60;
+  private autoTest: AutoTest | null = null;
   readonly clock = new WorldClock();
   weather!: Weather;
   private coverage = 0.6;
@@ -197,7 +199,7 @@ export class Experience {
     const q = params.get('quality');
     if (q === 'low' || q === 'medium' || q === 'high' || q === 'ultra') updateSettings('graphics', { quality: q });
     const s = settings.get();
-    const forceWebGL = params.get('renderer') === 'webgl' || s.graphics.renderer === 'webgl2';
+    const forceWebGL = params.get('renderer') === 'webgl' || s.graphics.renderer === 'webgl2' || !(await webgpuAvailable());
     this.quality = new QualityManager();
     this.renderer = new Renderer({ canvas: this.canvas, forceWebGL, antialias: this.quality.tier !== 'low' });
     const rendererReady = this.renderer.init();
@@ -240,7 +242,8 @@ export class Experience {
     this.planet.updateColliders(airportCenter);
     this.airport = new HomeAirport(this.physics, this.gravity, propMat, (dir) => this.groundHeight(dir));
     this.scene.add(this.airport.group);
-    detailCuller.add(this.airport.group, 160, 3);
+    // Papan, huruf, dan props bandara (≤ 6 unit) tidak digambar dari jauh — dari orbit hanya titik.
+    detailCuller.add(this.airport.group, 160, 6);
     this.planet.updateColliders(this.airport.spawnPoint().position);
     this.physics.world.step(this.physics.events); // bangun BVH collider
 
@@ -338,7 +341,8 @@ export class Experience {
       teleport: (lat, lon, alt, heading, speed) => this.teleport(lat, lon, alt, heading, speed),
       returnLetters: () => this.airport.letters.returnAll(),
     });
-    if (isDebugEnabled() || import.meta.env.DEV || params.has('test')) this.exposeTestHooks();
+    if (isDebugEnabled() || import.meta.env.DEV || params.has('test') || params.has('autotest')) this.exposeTestHooks();
+    if (params.has('autotest')) this.startAutoTest();
     appPhase.set('ready');
     this.start();
   }
@@ -753,6 +757,7 @@ export class Experience {
       this.hudTimer = 0;
       this.pushHud();
     }
+    this.autoTest?.update(this.time.rawDelta);
     this.input.endFrame();
   }
 
@@ -813,7 +818,7 @@ export class Experience {
       if (!p) return false;
       const pos = this.archipelago.islandPosition(p.id);
       if (!pos) return false;
-      target = { id: p.id, label: p.title, position: pos, approachAgl: 16, onArrive: open ? () => bus.emit('panel:open', { kind: 'project', id: p.id }) : undefined };
+      target = { id: p.id, label: p.title, position: pos, approachAgl: AUTOPILOT.ISLAND_AGL, onArrive: open ? () => bus.emit('panel:open', { kind: 'project', id: p.id }) : undefined };
     } else if (kind === 'landmark') {
       const pos = this.landmarks.position(id);
       const lm = content.get().landmarks.landmarks.find((x) => x.id === id);
@@ -821,7 +826,7 @@ export class Experience {
       target = { id, label: L(lm.name), position: pos, approachAgl: 26 };
     } else if (kind === 'space') {
       const up = this.plane.position.clone().normalize();
-      target = { id: 'space', label: L(content.get().zones.zones.find((z) => z.id === 'orbit')?.name), position: up.multiplyScalar(PLANET_RADIUS), approachAgl: 240, boost: true };
+      target = { id: 'space', label: L(content.get().zones.zones.find((z) => z.id === 'orbit')?.name), position: up.multiplyScalar(PLANET_RADIUS), approachAgl: 240, boost: true, arriveAltitude: SPACE.SPACE_ALT + 15 };
     } else if (kind === 'moon') {
       target = { id: 'moon', label: L(content.get().zones.zones.find((z) => z.id === 'moon')?.name), position: this.moon.pad.clone(), approachAgl: 30, boost: true };
     }
@@ -941,6 +946,24 @@ export class Experience {
     this.rig.snap(this.camTarget);
   }
 
+  /** Skenario terbang otomatis untuk audit performa (src/core/AutoTest.ts). */
+  private startAutoTest(): void {
+    this.autoTest = new AutoTest({
+      board: () => void this.board(),
+      flyTo: (dest) => this.flyTo(dest, { openPanel: false }),
+      autopilot: () => this.autopilot,
+      sample: (out) => {
+        this.renderer.readInfo(out);
+        out.fps = this.fps;
+        out.physicsMs = this.physics.lastStepMs;
+        out.altitude = this.plane.altitude;
+      },
+      tier: () => this.quality.tier,
+      backend: () => this.renderer.backend,
+      geo: () => planeGeo.get(),
+    });
+  }
+
   private exposeTestHooks(): void {
     const w = window as unknown as { __skyfolio?: unknown };
     w.__skyfolio = {
@@ -1012,6 +1035,7 @@ export class Experience {
         return rows.join(String.fromCharCode(10));
       },
       perf: () => ({ fps: this.fps, ...this.renderer.info, physicsMs: this.physics.lastStepMs, scatter: this.scatter.kindCounts }),
+      autotest: () => this.autoTest?.report() ?? null,
       teleport: (lat: number, lon: number, alt: number, heading: number, speed: number) =>
         this.teleport(lat, lon, alt, heading, speed),
       setHour: (h: number | null) => this.setHour(h),
@@ -1081,6 +1105,7 @@ export class Experience {
   }
 
   dispose(): void {
+    this.autoTest?.dispose();
     this.renderer.three.setAnimationLoop(null);
     for (const u of this.unsubs) u();
     this.feedback.dispose();

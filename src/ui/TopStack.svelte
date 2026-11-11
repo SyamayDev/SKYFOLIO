@@ -59,7 +59,7 @@
     align-items: center;
     gap: 6px;
     max-width: 100%;
-    font: 600 13px var(--font-title);
+    font: 600 calc(13px * var(--text-scale, 1)) var(--font-title);
     background: var(--panel);
     border-radius: 999px;
     padding: 4px 12px 4px 9px;
@@ -83,7 +83,7 @@
     color: #fff;
     border-radius: 999px;
     padding: 5px 6px 5px 14px;
-    font: 600 15px var(--font-title);
+    font: 600 calc(15px * var(--text-scale, 1)) var(--font-title);
     pointer-events: auto;
     box-shadow: var(--shadow);
   }
@@ -103,7 +103,7 @@
     color: var(--ink);
     box-shadow: var(--shadow);
     padding: 8px 14px;
-    font: 600 14px var(--font-title);
+    font: 600 calc(14px * var(--text-scale, 1)) var(--font-title);
     pointer-events: auto;
     cursor: pointer;
   }

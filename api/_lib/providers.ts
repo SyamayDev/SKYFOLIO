@@ -57,16 +57,38 @@ export function parseReply(text: string): Reply | null {
   }
 }
 
+/**
+ * Model penalaran (Groq gpt-oss, Gemini 2.5/3.x, Qwen3, DeepSeek-R1) memakai token "berpikir" dari jatah yang
+ * sama dengan jawaban. Dengan jatah kecil, JSON jawaban bisa terpotong, jadi jatahnya dibesarkan dan usaha
+ * berpikirnya diminta rendah (lebih cepat).
+ */
+export function isReasoningModel(model: string): boolean {
+  return /gpt-oss|gemini-(2\.5|[3-9])|qwen3|deepseek-r1/i.test(model);
+}
+
+export function requestBody(p: Provider, messages: ChatMsg[], plain = false): Record<string, unknown> {
+  const body: Record<string, unknown> = { model: p.model, messages, temperature: 0.4, max_tokens: 260 };
+  if (!plain && isReasoningModel(p.model)) {
+    body.max_tokens = 1200;
+    if (p.name !== 'cloudflare') body.reasoning_effort = 'low';
+  }
+  return body;
+}
+
 export async function callProvider(p: Provider, messages: ChatMsg[], timeoutMs: number, fetchImpl: typeof fetch = fetch): Promise<string> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetchImpl(p.url, {
+  const post = (body: Record<string, unknown>): Promise<Response> =>
+    fetchImpl(p.url, {
       method: 'POST',
       headers: { Authorization: `Bearer ${p.key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: p.model, messages, temperature: 0.4, max_tokens: 260 }),
+      body: JSON.stringify(body),
       signal: ctrl.signal,
     });
+  try {
+    let res = await post(requestBody(p, messages));
+    // Penyedia menolak parameter penalaran (model/versi API berbeda) → ulang sekali dengan permintaan polos.
+    if (res.status === 400 && isReasoningModel(p.model)) res = await post(requestBody(p, messages, true));
     if (!res.ok) throw new Error(`${p.name} HTTP ${res.status}`);
     const j = (await res.json()) as { choices?: { message?: { content?: string } }[]; result?: { response?: string } };
     return j.choices?.[0]?.message?.content ?? j.result?.response ?? '';

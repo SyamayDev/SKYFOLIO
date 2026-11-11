@@ -119,7 +119,7 @@
     margin-left: -15px;
     text-align: center;
     font-weight: 700;
-    font-size: 17px;
+    font-size: calc(17px * var(--text-scale, 1));
   }
   .mark.north {
     color: var(--berry);
@@ -203,19 +203,19 @@
   .label {
     grid-column: 1 / -1;
     font-family: var(--font-body);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale, 1));
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--panel-ink);
   }
   .value {
-    font-size: 24px;
+    font-size: calc(24px * var(--text-scale, 1));
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
   .unit {
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
     color: var(--panel-ink);
   }
   .touch .gauge {
@@ -223,7 +223,7 @@
     padding: 4px 10px;
   }
   .touch .value {
-    font-size: 19px;
+    font-size: calc(19px * var(--text-scale, 1));
   }
   .throttle {
     width: 12px;
@@ -250,7 +250,7 @@
     background: var(--berry);
     color: #fff;
     font-weight: 700;
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale, 1));
     padding: 6px 18px;
     border-radius: 999px;
     animation: blink 0.5s steps(2) infinite;
@@ -265,7 +265,7 @@
     right: calc(12px + var(--safe-right));
     top: calc(68px + var(--safe-top));
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale, 1));
     font-weight: 700;
     background: var(--panel);
     padding: 4px 10px;

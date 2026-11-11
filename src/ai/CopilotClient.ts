@@ -7,6 +7,7 @@ import type { SiteContent } from '../content/schema';
 import { currentZone, hud, panel, paused } from '../core/AppState';
 import { bus } from '../core/EventBus';
 import { progress } from '../game/Progress';
+import { equipSkin } from '../game/Skins';
 import { settings, updateSettings } from '../core/Settings';
 import { store } from '../core/Store';
 import { locale, tr } from '../i18n';
@@ -113,7 +114,7 @@ export function runActions(list: ValidAction[]): void {
         actions.emote(g.type as 'wave');
         break;
       case 'change_skin':
-        void import('../game/Skins').then((m) => m.equipSkin(g.skinId!));
+        equipSkin(g.skinId!);
         break;
     }
   }

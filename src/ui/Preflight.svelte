@@ -245,7 +245,7 @@
   }
   h1 {
     font-family: var(--font-title);
-    font-size: 34px;
+    font-size: calc(34px * var(--text-scale, 1));
     margin: 0;
     letter-spacing: 1px;
   }
@@ -255,7 +255,7 @@
   }
   .checklist h2 {
     font-family: var(--font-title);
-    font-size: 17px;
+    font-size: calc(17px * var(--text-scale, 1));
     margin: 0 0 8px;
   }
   .checklist ul {
@@ -286,7 +286,7 @@
     border: 2px solid var(--ink);
     display: grid;
     place-items: center;
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
     background: #fff;
     flex: none;
   }
@@ -310,7 +310,7 @@
     display: flex;
     align-items: flex-start;
     gap: 6px;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
     min-height: 44px;
     margin: 10px 0 0;
     animation: fadein 0.4s ease;
@@ -351,12 +351,12 @@
   }
   .flight {
     font-family: var(--font-title);
-    font-size: 22px;
+    font-size: calc(22px * var(--text-scale, 1));
     color: #2f8fa6;
   }
   .lbl {
     display: block;
-    font-size: 11px;
+    font-size: calc(11px * var(--text-scale, 1));
     letter-spacing: 0.8px;
     text-transform: uppercase;
     color: var(--panel-ink);
@@ -371,7 +371,7 @@
   }
   .namebox input {
     width: 100%;
-    font: 700 18px var(--font-title);
+    font: 700 calc(18px * var(--text-scale, 1)) var(--font-title);
     border: 0;
     border-bottom: 2px solid rgba(43, 45, 66, 0.2);
     padding: 6px 2px;
@@ -398,7 +398,7 @@
     border-radius: 18px;
     background: var(--sun);
     color: var(--ink);
-    font: 700 20px var(--font-title);
+    font: 700 calc(20px * var(--text-scale, 1)) var(--font-title);
     box-shadow: 0 6px 0 #d9a21c;
     transition: transform 0.12s ease;
   }
@@ -419,7 +419,7 @@
     border: 2px solid rgba(43, 45, 66, 0.15);
     border-radius: 16px;
     background: #fff;
-    font: 600 16px var(--font-title);
+    font: 600 calc(16px * var(--text-scale, 1)) var(--font-title);
     color: var(--ink);
     display: flex;
     align-items: center;
@@ -428,7 +428,7 @@
     cursor: pointer;
   }
   .hint {
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
     color: var(--panel-ink);
     margin: 10px 0 0;
     display: flex;

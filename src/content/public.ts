@@ -3,7 +3,7 @@
  * disembunyikan di situs, CV, Mode Ringkas, dan paket pengetahuan AI. Fungsi di sini murni (tanpa fs)
  * supaya bisa dipakai di build maupun tes.
  */
-import type { SiteContent } from './schema';
+import type { SiteContent } from './schema.ts';
 
 export interface HiddenField {
   where: string;

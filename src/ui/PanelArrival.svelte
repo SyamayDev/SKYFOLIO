@@ -172,11 +172,11 @@
     display: grid;
   }
   .grid b {
-    font: 700 30px var(--font-title);
+    font: 700 calc(30px * var(--text-scale, 1)) var(--font-title);
     color: #2f8fa6;
   }
   .grid span {
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale, 1));
     color: var(--panel-ink);
   }
   .p-row {

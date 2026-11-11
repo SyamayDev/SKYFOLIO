@@ -5,8 +5,27 @@
   import { toStation } from '../audio/MusicEngine/MusicEngine';
   import type { QualitySetting } from '../config/quality';
   import type { AssistLevel } from '../config/flight';
+  import { resetProgress } from '../game/Progress';
 
   let gyroMsg = $state('');
+  // Reset progres dua langkah: tekan sekali → minta konfirmasi 5 detik → tekan lagi.
+  let resetArmed = $state(false);
+  let resetDone = $state(false);
+  let resetTimer: ReturnType<typeof setTimeout> | undefined;
+  function onReset(): void {
+    actions.click();
+    if (!resetArmed) {
+      resetArmed = true;
+      resetDone = false;
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => (resetArmed = false), 5000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    resetProgress();
+    resetDone = true;
+  }
 
   function set<K extends keyof Settings>(section: K, patch: Partial<Settings[K]>): void {
     actions.click();
@@ -181,6 +200,15 @@
         <option value="off">{$t('common.off')}</option>
       </select>
     </label>
+    <label class="row"><span>{$t('settings.highContrast')}</span><input type="checkbox" checked={$settings.accessibility.highContrastUi} onchange={(e) => set('accessibility', { highContrastUi: e.currentTarget.checked })} data-testid="set-contrast" /></label>
+    <label class="row"><span>{$t('settings.largeText')}</span><input type="checkbox" checked={$settings.accessibility.largeText} onchange={(e) => set('accessibility', { largeText: e.currentTarget.checked })} data-testid="set-largetext" /></label>
+    <label class="row"><span>{$t('settings.colorblindMarkers')}</span><input type="checkbox" checked={$settings.accessibility.colorblindFriendlyMarkers} onchange={(e) => set('accessibility', { colorblindFriendlyMarkers: e.currentTarget.checked })} /></label>
+  </section>
+
+  <section>
+    <h3>{$t('settings.data')}</h3>
+    <button class="link danger" onclick={onReset} data-testid="reset-progress">{resetArmed ? $t('settings.resetConfirm') : $t('settings.resetProgress')}</button>
+    {#if resetDone}<p class="msg ok" role="status">{$t('settings.resetDone')}</p>{/if}
   </section>
 </div>
 
@@ -197,7 +225,7 @@
   h3 {
     margin: 0 0 6px;
     font-family: var(--font-title);
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale, 1));
   }
   .row {
     display: flex;
@@ -205,7 +233,7 @@
     justify-content: space-between;
     gap: 12px;
     min-height: 44px;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
   }
   select {
     font: inherit;
@@ -279,7 +307,7 @@
     background: transparent;
     padding: 8px 10px;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
     min-height: 38px;
   }
   .seg button.on {
@@ -289,13 +317,20 @@
     border: 0;
     background: transparent;
     color: var(--sky);
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
     padding: 8px 0;
     min-height: 40px;
+  }
+  .link.danger {
+    color: var(--berry);
+    font-weight: 700;
+  }
+  .msg.ok {
+    color: var(--ink);
   }
   .msg {
     margin: 0;
     color: var(--berry);
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
   }
 </style>

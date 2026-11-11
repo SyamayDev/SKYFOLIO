@@ -56,7 +56,7 @@
     text-align: center;
     padding: 24px;
     pointer-events: auto;
-    font-size: 18px;
+    font-size: calc(18px * var(--text-scale, 1));
   }
   .error a {
     font-family: var(--font-title);

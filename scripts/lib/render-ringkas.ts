@@ -3,9 +3,9 @@
  * Kedua bahasa ada di DOM (atribut data-l) dan ditukar dengan atribut html[data-lang] → tanpa reload,
  * tanpa three.js, ramah SEO. Semua teks tentang Aril berasal dari content/ (aturan 1).
  */
-import { escapeHtml as esc } from '../../src/content/markdown';
-import { pickText } from '../../src/content/public';
-import type { LText, MediaImage, Project, SiteContent } from '../../src/content/schema';
+import { escapeHtml as esc } from '../../src/content/markdown.ts';
+import { pickText } from '../../src/content/public.ts';
+import type { LText, MediaImage, Project, SiteContent } from '../../src/content/schema.ts';
 
 type Loc = 'id' | 'en';
 const LOCS: Loc[] = ['id', 'en'];

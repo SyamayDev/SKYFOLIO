@@ -25,7 +25,8 @@
     "optimize:media": "tsx scripts/optimize-media.ts",
     "build:cv": "tsx scripts/build-cv.ts",
     "validate:content": "tsx scripts/validate-content.ts",
-    "build:knowledge": "tsx scripts/build-knowledge.ts"
+    "build:knowledge": "tsx scripts/build-knowledge.ts",
+    "perf": "playwright test --config playwright.perf.config.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

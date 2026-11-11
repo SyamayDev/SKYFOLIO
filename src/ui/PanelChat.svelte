@@ -92,7 +92,7 @@
     margin: 0;
     padding: 9px 13px;
     border-radius: 16px;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
     line-height: 1.4;
     box-shadow: 0 1px 0 rgba(43, 45, 66, 0.08);
   }
@@ -178,7 +178,7 @@
     border-radius: 999px;
     background: rgba(47, 143, 166, 0.12);
     color: #22717f;
-    font: 600 13px var(--font-title);
+    font: 600 calc(13px * var(--text-scale, 1)) var(--font-title);
     padding: 7px 12px;
     cursor: pointer;
   }
@@ -196,7 +196,7 @@
     border: 2px solid #e6dccb;
     border-radius: 14px;
     padding: 0 14px;
-    font: 16px var(--font-body);
+    font: calc(16px * var(--text-scale, 1)) var(--font-body);
     background: #fff;
     color: var(--ink);
   }
@@ -220,7 +220,7 @@
     opacity: 0.5;
   }
   .privacy {
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale, 1));
     margin-top: 8px;
   }
   @media (prefers-reduced-motion: reduce) {

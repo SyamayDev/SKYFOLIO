@@ -100,10 +100,10 @@
     min-width: 0;
   }
   .txt b {
-    font: 700 14px var(--font-title);
+    font: 700 calc(14px * var(--text-scale, 1)) var(--font-title);
   }
   .txt small {
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale, 1));
     color: var(--panel-ink);
     line-height: 1.3;
   }
@@ -153,7 +153,7 @@
     background: var(--t);
   }
   .tag {
-    font: 600 12px var(--font-title);
+    font: 600 calc(12px * var(--text-scale, 1)) var(--font-title);
     color: #2f8fa6;
     display: inline-flex;
     align-items: center;

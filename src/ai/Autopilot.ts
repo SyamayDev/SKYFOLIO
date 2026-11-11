@@ -30,6 +30,11 @@ export interface AutopilotTarget {
   /** Tetap mengitari setelah tiba (Mode Rekruter / panel terbuka di HP). */
   hold?: boolean;
   boost?: boolean;
+  /**
+   * Baru dianggap tiba setelah setinggi ini di atas permukaan laut (tujuan vertikal seperti orbit). Selama
+   * belum tercapai, pesawat mengitari titik tujuan sambil menanjak dengan roket.
+   */
+  arriveAltitude?: number;
 }
 
 const _up = new Vector3();
@@ -82,15 +87,19 @@ export class Autopilot {
     // Arah yang diinginkan.
     _to.copy(t.position).normalize();
     _to.addScaledVector(_up, -_to.dot(_up));
-    if (dist < orbitR * 1.15) {
-      if (!this.arrived) {
-        this.arrived = true;
-        t.onArrive?.();
-        if (!t.hold) {
-          this.target = null;
-          return null;
-        }
+    const climbing = t.arriveAltitude !== undefined && r - PLANET_RADIUS < t.arriveAltitude;
+    const near = dist < orbitR * 1.15;
+    // Tujuan vertikal (orbit) tiba begitu ketinggiannya tercapai: dengan roket, pesawat melayang jauh dari titik awal.
+    const reached = t.arriveAltitude !== undefined ? !climbing : near;
+    if (reached && !this.arrived) {
+      this.arrived = true;
+      t.onArrive?.();
+      if (!t.hold) {
+        this.target = null;
+        return null;
       }
+    }
+    if (near) {
       // Mengitari: arah tangen lingkaran di sekitar POI (searah jarum jam dilihat dari atas).
       _to.normalize();
       _to.cross(_up).negate().addScaledVector(_to, (dist - orbitR) / orbitR);
@@ -119,7 +128,7 @@ export class Autopilot {
     // Saat miring, sebagian gaya angkat hilang → tambah tarikan sebanding sudut miring.
     c.pitch = clamp(altErr * AUTOPILOT.ALT_GAIN - vs * AUTOPILOT.VS_DAMP + this.altI + Math.abs(bank) * AUTOPILOT.TURN_PITCH, -0.8, 0.9);
     c.gas = 1;
-    c.boost = !!t.boost && dist > 120 && Math.abs(err) < 0.3;
+    c.boost = !!t.boost && ((dist > 120 && Math.abs(err) < 0.3) || climbing);
     // Dekat tanah (baru lepas landas): sayap datar dan terus menanjak lurus dulu, baru berbelok. Tanpa ini
     // autopilot langsung membelok di ujung landasan dan bisa menabrak menara kontrol.
     const agl0 = r - PLANET_RADIUS - Math.max(0, this.terrainHeight(_up));

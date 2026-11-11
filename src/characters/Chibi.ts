@@ -4,7 +4,8 @@
  * dengan pivot di sendi supaya bisa dianimasikan dan ekspresinya diganti.
  */
 import type { Object3D} from 'three';
-import { Group, Mesh, SphereGeometry, type BufferGeometry, type Material } from 'three';
+import { Group, Matrix4, Mesh, SphereGeometry, type BufferGeometry, type Material } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { EXTRA, PALETTE } from '../config/palette';
 import { Kit, box, cyl, ico, rbox, sphere, torus } from '../utils/modeling/Kit';
 
@@ -32,7 +33,8 @@ export interface ChibiStyle {
   cuffs?: [string, string];
 }
 
-const NO_SHADOW = new Set(['eye', 'brow', 'mouth', 'piko-details', 'stars', 'goggles', 'scarf']);
+// Lengan ikut tidak berbayang: bayangannya jatuh di dalam kokpit, tapi tiap mesh berbayang = 1 draw call lagi.
+const NO_SHADOW = new Set(['eye', 'brow', 'mouth', 'piko-details', 'stars', 'goggles', 'scarf', 'arm']);
 
 export function mesh(geo: BufferGeometry, mat: Material, name: string): Mesh {
   const m = new Mesh(geo, mat);
@@ -189,4 +191,34 @@ export function aviatorHelmet(r: number, mat: Material, colors = { leather: '#2F
   k.add(box(r * 0.16, r * 0.07, r * 0.07), colors.goggle, { pos: [0, cy + r * 0.52, -r * 1.0], rot: [0.62, 0, 0] });
   g.add(mesh(k.build(), mat, 'helmet'));
   return g;
+}
+
+/**
+ * Panggang mesh statis bernama `names` di bawah kepala ke mesh kepala → satu draw call untuk seluruh wajah.
+ * Hanya untuk karakter yang wajahnya tidak dianimasikan (Aril); material harus sama dengan kepala.
+ */
+export function bakeIntoHead(parts: ChibiParts, names: readonly string[]): void {
+  const headMesh = parts.head.children.find((c): c is Mesh => (c as Mesh).isMesh === true && c.name === 'head');
+  if (!headMesh) return;
+  parts.root.updateMatrixWorld(true);
+  const inv = new Matrix4().copy(headMesh.matrixWorld).invert();
+  const extra: BufferGeometry[] = [];
+  const baked: Mesh[] = [];
+  parts.head.traverse((o) => {
+    const m = o as Mesh;
+    if (!m.isMesh || m === headMesh || !names.includes(m.name) || m.material !== headMesh.material) return;
+    extra.push(m.geometry.clone().applyMatrix4(new Matrix4().multiplyMatrices(inv, m.matrixWorld)));
+    baked.push(m);
+  });
+  if (!extra.length) return;
+  const merged = mergeGeometries([headMesh.geometry, ...extra], false);
+  for (const g of extra) g.dispose();
+  // Atribut berbeda (tidak bisa digabung) → biarkan terpisah, tetap benar walau lebih banyak draw call.
+  if (!merged) return;
+  for (const m of baked) {
+    m.removeFromParent();
+    m.geometry.dispose();
+  }
+  headMesh.geometry.dispose();
+  headMesh.geometry = merged;
 }

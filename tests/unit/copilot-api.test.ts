@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { handleCopilot, sanitizeActions } from '../../api/copilot';
 import { moderateText } from '../../api/_lib/badwords';
-import { parseReply, type Provider } from '../../api/_lib/providers';
+import { callProvider, parseReply, requestBody, type Provider } from '../../api/_lib/providers';
 import { LIMITS, setStore } from '../../api/_lib/ratelimit';
 import { loadContent } from '../../scripts/lib/content';
 import { validateAction, validateActions } from '../../src/ai/Actions';
@@ -101,6 +101,28 @@ describe('/api/copilot', () => {
   it('origin asing ditolak', async () => {
     const r = new Request('https://skyfolio.test/api/copilot', { method: 'POST', headers: { origin: 'https://evil.example', host: 'skyfolio.test' }, body: '{}' });
     expect((await handleCopilot(r, { providers: [P('groq')] })).status).toBe(403);
+  });
+});
+
+describe('model penalaran', () => {
+  const groq: Provider = { name: 'groq', url: 'https://groq.test', key: 'k', model: 'openai/gpt-oss-20b' };
+  it('gpt-oss/Gemini 3 dapat jatah token besar + usaha rendah; model biasa tidak', () => {
+    expect(requestBody(groq, [])).toMatchObject({ max_tokens: 1200, reasoning_effort: 'low' });
+    expect(requestBody({ ...groq, name: 'gemini', model: 'gemini-3.5-flash-lite' }, [])).toMatchObject({ reasoning_effort: 'low' });
+    expect(requestBody({ ...groq, model: 'llama-3.1-8b-instant' }, [])).not.toHaveProperty('reasoning_effort');
+    expect(requestBody({ ...groq, name: 'cloudflare', model: '@cf/openai/gpt-oss-20b' }, [])).not.toHaveProperty('reasoning_effort');
+  });
+  it('parameter penalaran ditolak (400) → diulang polos sekali', async () => {
+    const bodies: Record<string, unknown>[] = [];
+    const fake = (async (_u: string, init?: RequestInit) => {
+      const b = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      bodies.push(b);
+      if ('reasoning_effort' in b) return new Response('bad', { status: 400 });
+      return Response.json({ choices: [{ message: { content: '{"say":"halo","actions":[]}' } }] });
+    }) as typeof fetch;
+    expect(await callProvider(groq, [], 2000, fake)).toContain('halo');
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1]).not.toHaveProperty('reasoning_effort');
   });
 });
 

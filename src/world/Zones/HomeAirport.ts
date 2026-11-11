@@ -13,6 +13,7 @@ import {
   InstancedMesh,
   Matrix4,
   Mesh,
+  Object3D,
   Quaternion,
   Vector3,
   type Material,
@@ -90,6 +91,11 @@ export class HomeAirport {
   readonly letters: RunwayLetters;
   readonly rings: TrainingRings;
   readonly luggage: Prop[] = [];
+  /** Koper digambar sebagai 2 InstancedMesh (badan berwarna + detail); tiap koper tetap rigid body sendiri. */
+  private readonly luggageProxies: Object3D[] = [];
+  private readonly luggageColors: string[] = [];
+  private luggageBody: InstancedMesh | null = null;
+  private luggageDetail: InstancedMesh | null = null;
   readonly sign: Billboard;
   private readonly statics: RAPIER.RigidBody[] = [];
   private readonly windsock = new Group();
@@ -193,6 +199,7 @@ export class HomeAirport {
     // ---------------- Koper (fisika)
     this.buildLuggage(gravity, -19, 6.6, 7);
     this.buildLuggage(gravity, -8.5, 7.2, 6);
+    this.finishLuggage();
 
     // ---------------- Papan tutorial (berganti sesuai perangkat)
     this.sign = new Billboard(() => '', {
@@ -382,17 +389,10 @@ export class HomeAirport {
       const w = 0.95;
       const h = 0.62;
       const d = 0.38;
-      const c = colors[(placed + Math.round(along)) % colors.length]!;
-      const k = new Kit();
-      k.add(rbox(w, h, d, 0.08), c, { jitter: 0.03 });
-      k.add(torus(0.13, 0.03, 4, 8, Math.PI), PALETTE.ink, { pos: [0, h / 2, 0] });
-      k.add(box(0.08, h + 0.02, d + 0.02), '#FFFFFF', { pos: [-w * 0.25, 0, 0] });
-      k.add(box(0.2, 0.14, 0.02), PALETTE.cream, { pos: [w * 0.2, h * 0.1, d / 2 + 0.01] });
-      const mesh = new Mesh(k.build(), this.material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.name = 'suitcase';
-      this.group.add(mesh);
+      this.luggageColors.push(colors[(placed + Math.round(along)) % colors.length]!);
+      // Proksi tak terlihat: pose rigid body ditulis ke sini, lalu disalin ke instans (lihat syncLuggage).
+      const mesh = new Object3D();
+      this.luggageProxies.push(mesh);
       const pos = this.frame.onSurface(along + dz, side + dx, h / 2 + layer * (h + 0.02) + 0.04);
       const rot = localQuat(pos, _v.copy(fwd).applyAxisAngle(_w.copy(pos).normalize(), (placed * 0.37) % 0.6));
       this.luggage.push(
@@ -406,6 +406,54 @@ export class HomeAirport {
       );
       placed++;
     }
+  }
+
+  /** Ukuran koper sama dengan collider di buildLuggage. */
+  private finishLuggage(): void {
+    const n = this.luggageProxies.length;
+    if (!n) return;
+    const w = 0.95;
+    const h = 0.62;
+    const d = 0.38;
+    const kb = new Kit();
+    kb.add(rbox(w, h, d, 0.08), '#FFFFFF', { jitter: 0.03 });
+    const kd = new Kit();
+    kd.add(torus(0.13, 0.03, 4, 8, Math.PI), PALETTE.ink, { pos: [0, h / 2, 0] });
+    kd.add(box(0.08, h + 0.02, d + 0.02), '#FFFFFF', { pos: [-w * 0.25, 0, 0] });
+    kd.add(box(0.2, 0.14, 0.02), PALETTE.cream, { pos: [w * 0.2, h * 0.1, d / 2 + 0.01] });
+    const body = new InstancedMesh(kb.build(), this.material, n);
+    const detail = new InstancedMesh(kd.build(), this.material, n);
+    for (let i = 0; i < n; i++) body.setColorAt(i, _color.set(this.luggageColors[i]!));
+    body.name = 'luggage-body';
+    detail.name = 'luggage-detail';
+    for (const m of [body, detail]) {
+      m.castShadow = true;
+      m.receiveShadow = true;
+      // Instans bergerak (fisika) → batas bola tidak tetap; grup bandara sudah di-cull horizon.
+      m.frustumCulled = false;
+      this.group.add(m);
+    }
+    this.luggageBody = body;
+    this.luggageDetail = detail;
+    this.syncLuggage(true);
+  }
+
+  /** Salin pose proksi (hasil interpolasi fisika) ke instans; dilewati bila semua koper tidur. */
+  private syncLuggage(force = false): void {
+    const body = this.luggageBody;
+    const detail = this.luggageDetail;
+    if (!body || !detail) return;
+    let awake = force;
+    for (const l of this.luggage) if (!l.body.isSleeping()) awake = true;
+    if (!awake) return;
+    for (let i = 0; i < this.luggageProxies.length; i++) {
+      const p = this.luggageProxies[i]!;
+      p.updateMatrix();
+      body.setMatrixAt(i, p.matrix);
+      detail.setMatrixAt(i, p.matrix);
+    }
+    body.instanceMatrix.needsUpdate = true;
+    detail.instanceMatrix.needsUpdate = true;
   }
 
   private placeSign(along: number, side: number): void {
@@ -562,6 +610,7 @@ export class HomeAirport {
     this.letters.update(dt);
     this.rings.update(dt, planePos, time);
     for (const l of this.luggage) l.manageSleep(planePos);
+    this.syncLuggage();
     for (const l of this.letters.letters) l.prop.manageSleep(planePos);
 
     // Kantong angin mengikuti arah dan kecepatan angin (melorot saat tenang).
@@ -588,6 +637,8 @@ export class HomeAirport {
 
   dispose(): void {
     for (const b of this.statics) this.physics.world.removeRigidBody(b);
+    this.luggageBody?.geometry.dispose();
+    this.luggageDetail?.geometry.dispose();
     this.rings.dispose();
     this.sign.dispose();
   }

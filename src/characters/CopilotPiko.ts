@@ -8,7 +8,7 @@ import { PALETTE } from '../config/palette';
 import { Kit, cyl, rbox, sphere, torus } from '../utils/modeling/Kit';
 import { damp } from '../utils/math';
 import { wobble } from '../utils/noise';
-import { buildChibi, mesh, pilotHat, type ChibiParts } from './Chibi';
+import { buildChibi, mesh, pilotHat, type ChibiParts, bakeIntoHead } from './Chibi';
 import type { CharacterContext } from './PilotAril';
 
 export type PikoEmote = 'wave' | 'cheer' | 'think' | 'sleepy' | 'wow';
@@ -51,6 +51,8 @@ export class CopilotPiko {
     ck.add(cyl(r * 0.03, r * 0.03, r * 0.8, 4), PALETTE.ink, { pos: [r * 0.75, r * 0.55, -r * 0.55], rot: [0.9, 0.4, 0] });
     ck.add(sphere(r * 0.09, 5, 4), PALETTE.berry, { pos: [r * 0.45, r * 0.42, -r * 0.88] });
     this.parts.head.add(mesh(ck.build(), mat, 'piko-details'));
+    // Headset statis → digabung ke mesh kepala (mata, alis, mulut, topi tetap terpisah karena dianimasikan).
+    bakeIntoHead(this.parts, ['piko-details']);
     // Topi kebesaran (bisa terbang).
     this.hat = pilotHat(r, PALETTE.sky, mat, 1.22);
     this.hat.position.set(0, r * 1.55, -0.02);

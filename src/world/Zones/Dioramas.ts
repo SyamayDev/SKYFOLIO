@@ -9,12 +9,12 @@ import { ConeGeometry, Group, Mesh, Quaternion, SphereGeometry, Vector3, type Ob
 import { PALETTE } from '../../config/palette';
 import { bus } from '../../core/EventBus';
 import { tr } from '../../i18n';
-import type { Prop } from '../../physics/Props';
+import { Prop } from '../../physics/Props';
 import { Kit, box, cone, cyl, ico, rbox, sphere, torus } from '../../utils/modeling/Kit';
 import { createUnlitMaterial } from '../../utils/modeling/materials';
 import { Billboard } from '../Billboard';
 import { PropKind, kindGeometry } from '../ScatterKinds';
-import type { ZoneTick } from './Zone';
+import type { ZoneAction, ZoneTick } from './Zone';
 import { addProp, addSensor, addStatic, makeMesh, type SurfaceFrame, type ZoneDeps } from './ZoneKit';
 
 export interface DioramaCtx {
@@ -31,6 +31,8 @@ export interface DioramaCtx {
 export interface Diorama {
   update(t: ZoneTick, near: boolean): void;
   props: Prop[];
+  /** Aksi khusus diorama saat pesawat di dekatnya (mis. mini-game). */
+  action?: (t: ZoneTick) => ZoneAction | null;
 }
 
 const _v = new Vector3();
@@ -177,9 +179,69 @@ export function buildDiorama(kind: string, ctx: DioramaCtx): Diorama {
       bk.add(sphere(0.7, 8, 6), '#FFFFFF', { pos: [0, 0.9, 0], scale: [1, 0.5, 1] });
       basket.add(mesh(bk, ctx, 'basket'));
       placed(ctx, basket, -5, 3);
+      // Mini-game "Misi Laundry Beres" (konten SI-PANDRI): jatuhkan karung cucian ke mesin cuci dalam 45 detik.
+      m.updateMatrixWorld(true);
+      const drumPos = drum.getWorldPosition(new Vector3());
+      const game = { active: false, time: 0, score: 0, cooldown: 0 };
+      const bags: { prop: Prop; age: number }[] = [];
+      const removeBag = (b: { prop: Prop }): void => {
+        physics.removeSynced(b.prop.synced);
+        ctx.deps.gravity.remove(b.prop.body);
+        physics.world.removeRigidBody(b.prop.body);
+        ctx.group.remove(b.prop.object);
+      };
+      addSensor(physics, drumPos, 2.4, (owner) => {
+        const i = bags.findIndex((b) => b.prop === owner);
+        if (i < 0 || !game.active) return;
+        removeBag(bags[i]!);
+        bags.splice(i, 1);
+        game.score++;
+        ctx.deps.particles.burst(drumPos, 18, ['#9FD8F5', '#FFFFFF', '#FFC93C'], { speed: 5, up: drumPos.clone().normalize(), upSpeed: 5, life: 1, size: 0.3, gravity: 6 });
+        bus.emit('toast', { text: tr('zones.laundry.in', { n: game.score }), kind: 'success', icon: 'sparkle' });
+      });
+      const drop = (t: ZoneTick): void => {
+        if (game.cooldown > 0) return;
+        game.cooldown = 0.6;
+        if (!game.active) {
+          game.active = true;
+          game.time = 45;
+          game.score = 0;
+          bus.emit('toast', { text: tr('zones.laundry.start'), kind: 'info', icon: 'sparkle' });
+        }
+        const g = new Group();
+        const k = new Kit();
+        k.add(sphere(0.6, 8, 6), ['#FF5A5F', '#FFC93C', '#3AA0FF', '#3DCB7A'][bags.length % 4]!, { scale: [1, 0.8, 1], jitter: 0.05 });
+        k.add(cyl(0.18, 0.12, 0.4, 6), '#C98B55', { pos: [0, 0.55, 0] });
+        g.add(mesh(k, ctx, 'laundry-bag'));
+        const up = _w.copy(t.planePos).normalize();
+        g.position.copy(t.planePos).addScaledVector(up, -1.6);
+        ctx.group.add(g);
+        const prop = new Prop(physics, ctx.deps.gravity, g, g.position, _q.identity(), { mass: 0.5, material: 'fabric', shapes: [{ half: [0.55, 0.45, 0.55] }], restitution: 0.2 });
+        prop.body.setLinvel({ x: t.planeVel.x * 0.85, y: t.planeVel.y * 0.85, z: t.planeVel.z * 0.85 }, true);
+        bags.push({ prop, age: 0 });
+        if (bags.length > 8) removeBag(bags.shift()!);
+      };
       return {
         props,
+        action: (t) => (t.grounded ? null : { label: 'actions.dropLaundry', run: () => drop(t) }),
         update: (t, near) => {
+          game.cooldown -= t.dt;
+          for (let i = bags.length - 1; i >= 0; i--) {
+            const b = bags[i]!;
+            b.age += t.dt;
+            if (b.age > 15) {
+              removeBag(b);
+              bags.splice(i, 1);
+            }
+          }
+          if (game.active) {
+            game.time -= t.dt;
+            if (game.time <= 0) {
+              game.active = false;
+              bus.emit('toast', { text: tr('zones.laundry.done', { n: game.score }), kind: game.score >= 8 ? 'success' : 'info', icon: 'trophy' });
+              bus.emit('interact', { zone: 'project-archipelago', action: `laundry-score:${game.score}` });
+            }
+          }
           drum.rotation.z += t.dt * (near ? 5 : 1.5);
           cloths.forEach((c, i) => {
             const gust = 0.25 + Math.min(1.2, t.planeVel.length() / 40) * (near ? 1 : 0.2);

@@ -4,6 +4,7 @@ import type { Dictionary } from './id';
 export const en: Dictionary = {
   meta: {
     title: 'SKYFOLIO — Fly with Aril',
+    titleZone: '{zone} · SKYFOLIO',
     langName: 'English',
   },
   common: {
@@ -133,6 +134,13 @@ export const en: Dictionary = {
     accessibility: 'Accessibility',
     reducedMotion: 'Reduce motion',
     reducedMotionAuto: 'Follow system',
+    highContrast: 'High contrast',
+    largeText: 'Large text',
+    colorblindMarkers: 'Colorblind-friendly markers',
+    data: 'Data',
+    resetProgress: 'Reset progress (passport, achievements, skins)',
+    resetConfirm: 'Sure? Press again to erase',
+    resetDone: 'Progress has been reset.',
     gyroDenied: 'Motion sensor permission denied',
     gyroUnavailable: 'This device has no motion sensor',
   },
@@ -179,6 +187,7 @@ export const en: Dictionary = {
     runway: 'Runway PK-ARL · Medan',
   },
   actions: {
+    dropLaundry: "Drop laundry",
     contact: "Send a message",
     dropParcel: "Drop parcel",
     dropIngredient: "Drop ingredient",
@@ -202,6 +211,11 @@ export const en: Dictionary = {
     viewSkills: "View skills",
   },
   zones: {
+    laundry: {
+      start: "Laundry Mission starts! 45 seconds, drop the laundry into the washer!",
+      in: "Laundry in! Score {n}",
+      done: "Time's up! Laundry score: {n}",
+    },
     firstVisit: "New passport stamp!",
     welcomeBack: "Welcome back",
     board: {

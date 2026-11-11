@@ -8,11 +8,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
-import { toPublicContent } from '../src/content/public';
-import { CONTENT_DIR, GENERATED_DIR, formatIssues, loadContent } from './lib/content';
-import { renderCv } from './lib/render-cv';
-import { renderRingkas } from './lib/render-ringkas';
-import { hangarMiddleware } from './hangar-api';
+import { toPublicContent } from '../src/content/public.ts';
+import { CONTENT_DIR, GENERATED_DIR, formatIssues, loadContent } from './lib/content.ts';
+import { renderCv } from './lib/render-cv.ts';
+import { renderRingkas } from './lib/render-ringkas.ts';
+import { hangarMiddleware } from './hangar-api.ts';
 
 const VIRTUAL = 'virtual:content';
 const RESOLVED = '\0virtual:content';

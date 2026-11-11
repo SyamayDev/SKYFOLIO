@@ -12,6 +12,20 @@ export type PostMode = 'off' | 'light' | 'full';
 
 export type BackendName = 'WebGPU' | 'WebGL2';
 
+/**
+ * Apakah WebGPU tersedia? Dicek lebih dulu supaya di browser tanpa WebGPU renderer langsung memakai WebGL2
+ * (tanpa peringatan fallback three.js di console).
+ */
+export async function webgpuAvailable(): Promise<boolean> {
+  const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu;
+  if (!gpu) return false;
+  try {
+    return (await gpu.requestAdapter()) != null;
+  } catch {
+    return false;
+  }
+}
+
 export interface RendererOptions {
   canvas: HTMLCanvasElement;
   forceWebGL: boolean;
@@ -93,6 +107,13 @@ export class Renderer {
   get info(): { drawCalls: number; triangles: number } {
     const r = this.three.info.render;
     return { drawCalls: r.drawCalls, triangles: r.triangles };
+  }
+
+  /** Sama dengan `info`, tanpa membuat objek baru (untuk dibaca tiap frame). */
+  readInfo(out: { drawCalls: number; triangles: number }): void {
+    const r = this.three.info.render;
+    out.drawCalls = r.drawCalls;
+    out.triangles = r.triangles;
   }
 
   dispose(): void {

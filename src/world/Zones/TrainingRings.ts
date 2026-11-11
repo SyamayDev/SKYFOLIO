@@ -69,6 +69,8 @@ export class TrainingRings {
       }
       const mesh = new Mesh(k.build(), material);
       mesh.name = `ring-${i}`;
+      // Target terbang: harus terlihat dari jauh, jadi tidak ikut pemangkas detail.
+      mesh.userData.noCull = true;
       mesh.castShadow = true;
       const g = new Group();
       g.position.copy(center);
@@ -78,6 +80,8 @@ export class TrainingRings {
       g.add(mesh);
       const label = new Billboard(def.label, { width: 4.2, height: 1.2, fontSize: 92, color: PALETTE.ink, bg: 'rgba(255,246,230,0.92)' });
       label.object.position.set(0, RADIUS + 1.4, 0);
+      // Visibilitas label diatur update() di bawah.
+      label.object.userData.noCull = true;
       g.add(label.object);
       this.group.add(g);
       this.rings.push({ group: g, mesh, center, normal, passed: false, flash: 0, prevSide: NaN, label });

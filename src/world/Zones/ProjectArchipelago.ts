@@ -44,6 +44,10 @@ class ProjectIsland {
   private landedOnce = false;
   near = false;
 
+  dioramaAction(t: ZoneTick): ZoneAction | null {
+    return this.diorama?.action?.(t) ?? null;
+  }
+
   constructor(
     readonly project: Project,
     readonly place: PlacedIsland,
@@ -335,6 +339,9 @@ export class ProjectArchipelago extends Zone {
     if (!isl || t.planePos.distanceTo(isl.center) > isl.place.radius + 25) {
       return { label: 'actions.viewProjects', run: () => bus.emit('panel:open', { kind: 'zone', id: this.id }) };
     }
+    // Mini-game diorama (mis. Misi Laundry Beres) saat terbang dekat pulaunya.
+    const special = isl.dioramaAction(t);
+    if (special) return special;
     return { label: 'actions.viewProject', run: () => bus.emit('panel:open', { kind: 'project', id: isl.project.id }) };
   }
 

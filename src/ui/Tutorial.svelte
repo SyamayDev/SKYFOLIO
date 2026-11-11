@@ -74,7 +74,7 @@
   p {
     margin: 0;
     flex: 1;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
     line-height: 1.35;
   }
   .skip {

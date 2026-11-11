@@ -25,6 +25,7 @@ import {
   type BufferGeometry,
   type Material,
 } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MeshBasicNodeMaterial, MeshToonNodeMaterial } from 'three/webgpu';
 import { attribute, color, distance, dot, float, mix, normalView, oneMinus, positionGeometry, positionViewDirection, pow, sin, smoothstep, time, uniform, vec3 } from 'three/tsl';
 import { EXTRA, PALETTE } from '../config/palette';
@@ -354,20 +355,20 @@ export class PlaneModel {
     // ---------------- Permukaan kendali (pivot di garis engsel)
     const hingeZ = W.z + W.halfChord - 0.02;
     const ailGeo = (): BufferGeometry => new Kit().add(rbox(1.25, 0.07, 0.26, 0.03), C.bodyShade, { pos: [0, 0, 0.13] }).build();
-    this.aileronL.add(makeMesh(ailGeo(), mat, 'aileron-l'));
-    this.aileronR.add(makeMesh(ailGeo(), mat, 'aileron-r'));
+    this.aileronL.add(makeMesh(ailGeo(), mat, 'aileron-l', false));
+    this.aileronR.add(makeMesh(ailGeo(), mat, 'aileron-r', false));
     this.aileronL.position.set(-1.55, W.y, hingeZ);
     this.aileronR.position.set(1.55, W.y, hingeZ);
     this.root.add(this.aileronL, this.aileronR);
 
-    this.elevator.add(makeMesh(new Kit().add(rbox(1.5, 0.05, 0.26, 0.02), C.bodyShade, { pos: [0, 0, 0.13] }).build(), mat, 'elevator'));
+    this.elevator.add(makeMesh(new Kit().add(rbox(1.5, 0.05, 0.26, 0.02), C.bodyShade, { pos: [0, 0, 0.13] }).build(), mat, 'elevator', false));
     this.elevator.position.set(0, tp.y, tp.z + 0.14);
     this.root.add(this.elevator);
 
     const rk = new Kit();
     rk.add(rbox(0.08, 0.74, 0.32, 0.035), C.red, { pos: [0, 0.37, 0.16] });
     rk.add(rbox(0.085, 0.08, 0.3, 0.03), C.teal, { pos: [0, 0.2, 0.16] });
-    this.rudder.add(makeMesh(rk.build(), mat, 'rudder'));
+    this.rudder.add(makeMesh(rk.build(), mat, 'rudder', false));
     this.rudder.position.set(0, 0.32, 2.18);
     this.rudder.rotation.x = -0.32;
     this.root.add(this.rudder);
@@ -376,20 +377,41 @@ export class PlaneModel {
     const regTex = registrationTexture('PK-ARL');
     this.disposables.push(regTex);
     const regMat = new MeshBasicNodeMaterial({ map: regTex, transparent: true, depthWrite: false, side: DoubleSide });
+    // Pelat datar tidak pernah menutupi dirinya sendiri → cukup satu pass.
+    regMat.forceSinglePass = true;
     this.disposables.push(regMat);
+    const regParts: Mesh[] = [];
     for (const side of [-1, 1]) {
       const z = 1.38;
       const plate = new Mesh(new PlaneGeometry(0.7, 0.21), regMat);
       plate.position.set(side * (fuselageRadius(z) + 0.012), 0.0, z);
       plate.rotation.set(0, side * Math.PI * 0.5, 0);
       plate.name = 'reg-side';
-      this.root.add(plate);
+      regParts.push(plate);
     }
     const under = new Mesh(new PlaneGeometry(2.4, 0.74), regMat);
     under.position.set(0, W.y - 0.115, W.z);
     under.rotation.set(Math.PI / 2, 0, 0);
     under.name = 'reg-wing';
-    this.root.add(under);
+    regParts.push(under);
+    // Ketiga pelat memakai tekstur yang sama dan tidak bergerak → satu mesh (hemat 2 draw call).
+    for (const p of regParts) {
+      p.updateMatrix();
+      p.geometry.applyMatrix4(p.matrix);
+    }
+    const regGeo = mergeGeometries(regParts.map((p) => p.geometry), false);
+    if (regGeo) {
+      for (const p of regParts) p.geometry.dispose();
+      const reg = new Mesh(regGeo, regMat);
+      reg.name = 'registration';
+      this.root.add(reg);
+    } else {
+      for (const p of regParts) {
+        p.position.set(0, 0, 0);
+        p.rotation.set(0, 0, 0);
+        this.root.add(p);
+      }
+    }
 
     // ---------------- Roda (kaki teleskopik + roda berputar)
     const tireGeo = (r: number, w: number): BufferGeometry => {
@@ -402,7 +424,7 @@ export class PlaneModel {
     const addWheel = (x: number, y: number, z: number, radius: number, rest: number): void => {
       const leg = new Group();
       leg.position.set(x, y, z);
-      leg.add(makeMesh(new Kit().add(cyl(0.04, 0.04, rest, 6), C.teal, { pos: [0, -rest / 2, 0] }).build(), mat, 'leg'));
+      leg.add(makeMesh(new Kit().add(cyl(0.04, 0.04, rest, 6), C.teal, { pos: [0, -rest / 2, 0] }).build(), mat, 'leg', false));
       const wheel = new Group();
       wheel.position.set(0, -rest, 0);
       wheel.add(makeMesh(tireGeo(radius, radius * 0.6), mat, 'wheel'));

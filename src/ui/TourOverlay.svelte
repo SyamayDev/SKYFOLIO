@@ -59,7 +59,7 @@
     flex: none;
   }
   .kicker {
-    font: 600 12px var(--font-title);
+    font: 600 calc(12px * var(--text-scale, 1)) var(--font-title);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #2f8fa6;
@@ -100,7 +100,7 @@
     padding: 0 14px;
     border: 0;
     border-radius: 14px;
-    font: 600 14px var(--font-title);
+    font: 600 calc(14px * var(--text-scale, 1)) var(--font-title);
     color: var(--ink);
     cursor: pointer;
   }
@@ -123,12 +123,12 @@
       padding: 10px 12px;
     }
     .text {
-      font-size: 15px;
+      font-size: calc(15px * var(--text-scale, 1));
       margin: 4px 0 8px;
     }
     button {
       min-height: 38px;
-      font-size: 13px;
+      font-size: calc(13px * var(--text-scale, 1));
     }
   }
   @media (prefers-reduced-motion: reduce) {

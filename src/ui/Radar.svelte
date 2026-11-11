@@ -4,6 +4,8 @@
   import { content, L } from '../content';
   import Icon from './Icon.svelte';
   import { ZONE_ICONS } from './icons';
+  import { settings } from '../core/Settings';
+  import { markerColor } from './a11y';
 
   // Radar kecil: zona dalam 140 unit tampil di lingkaran, yang lebih jauh jadi panah di tepi (docs/07 bagian 2).
   const RANGE = 140;
@@ -28,7 +30,7 @@
         class:visited={b.visited}
         style:left={`${50 + Math.sin(b.bearing) * r}%`}
         style:top={`${50 - Math.cos(b.bearing) * r}%`}
-        style:--c={b.color}
+        style:--c={markerColor(b.color, b.id, $settings.accessibility.colorblindFriendlyMarkers)}
         style:transform={`translate(-50%,-50%) rotate(${inside ? 0 : b.bearing}rad)`}
         title={name(b.id)}
         >{#if inside}<Icon name={ZONE_ICONS[b.id] ?? 'pin'} size={13} />{:else}<svg viewBox="0 0 12 12" width="10" height="10"><path d="M6 1l5 9H1z" fill="currentColor" /></svg>{/if}</span
@@ -94,7 +96,7 @@
     color: var(--c);
   }
   .blip.edge {
-    font-size: 10px;
+    font-size: calc(10px * var(--text-scale, 1));
     color: var(--c);
   }
   .blip.visited {
@@ -107,7 +109,7 @@
     width: max-content;
     max-width: 170px;
     margin-top: 6px;
-    font: 600 12px var(--font-title);
+    font: 600 calc(12px * var(--text-scale, 1)) var(--font-title);
     background: var(--panel);
     border-radius: 999px;
     padding: 3px 8px;

@@ -288,7 +288,7 @@
     height: 96px;
     background: var(--berry);
     color: #fff;
-    font-size: 18px;
+    font-size: calc(18px * var(--text-scale, 1));
   }
   .boost.down {
     background: #ff3d44;
@@ -299,7 +299,7 @@
     width: 68px;
     height: 68px;
     background: var(--panel-strong);
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
   }
   .ctx {
     grid-column: 1 / -1;
@@ -308,7 +308,7 @@
     border-radius: 999px;
     background: #2f8fa6;
     color: #fff;
-    font: 700 15px var(--font-title);
+    font: 700 calc(15px * var(--text-scale, 1)) var(--font-title);
     padding: 0 16px;
   }
   .action {
@@ -317,7 +317,7 @@
     width: 72px;
     height: 72px;
     background: var(--sun);
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
   }
   .horn {
     right: 104px;
@@ -325,7 +325,7 @@
     width: 56px;
     height: 56px;
     background: var(--panel-strong);
-    font-size: 22px;
+    font-size: calc(22px * var(--text-scale, 1));
   }
   .portrait .buttons {
     transform: scale(0.92);

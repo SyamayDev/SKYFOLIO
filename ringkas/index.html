@@ -12,24 +12,9 @@
     <meta property="og:image" content="/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate" hreflang="id" href="/ringkas/" />
-    <link rel="alternate" hreflang="en" href="/ringkas/?lang=en" />
-    <script>
-      // Bahasa & tema dipilih sebelum render supaya tidak berkedip.
-      (function () {
-        var d = document.documentElement;
-        var lang = 'id';
-        try {
-          var q = new URLSearchParams(location.search).get('lang');
-          var s = JSON.parse(localStorage.getItem('skyfolio:v1:settings') || '{}');
-          lang = q || (s.language && s.language !== 'auto' ? s.language : (navigator.language || 'id').toLowerCase().indexOf('en') === 0 ? 'en' : 'id');
-          var th = localStorage.getItem('skyfolio:ringkas:theme');
-          if (th) d.dataset.theme = th;
-        } catch (e) {}
-        d.dataset.lang = lang === 'en' ? 'en' : 'id';
-        d.lang = d.dataset.lang;
-      })();
-    </script>
+    <!-- canonical & hreflang disisipkan saat build oleh scripts/seo.ts (URL absolut) -->
+    <!-- Bahasa & tema dipilih sebelum render (file statis supaya lolos CSP). -->
+    <script src="/boot/ringkas.js"></script>
     <script type="module" src="./main.ts"></script>
   </head>
   <body>

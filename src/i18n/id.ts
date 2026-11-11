@@ -2,6 +2,7 @@
 export const id = {
   meta: {
     title: 'SKYFOLIO — Terbang bersama Aril',
+    titleZone: '{zone} · SKYFOLIO',
     langName: 'Indonesia',
   },
   common: {
@@ -131,6 +132,13 @@ export const id = {
     accessibility: 'Aksesibilitas',
     reducedMotion: 'Kurangi gerakan',
     reducedMotionAuto: 'Ikuti sistem',
+    highContrast: 'Kontras tinggi',
+    largeText: 'Teks besar',
+    colorblindMarkers: 'Penanda ramah buta warna',
+    data: 'Data',
+    resetProgress: 'Reset progres (paspor, achievement, skin)',
+    resetConfirm: 'Yakin? Tekan sekali lagi untuk menghapus',
+    resetDone: 'Progres sudah direset.',
     gyroDenied: 'Izin sensor gerak ditolak',
     gyroUnavailable: 'Perangkat ini tidak punya sensor gerak',
   },
@@ -177,6 +185,7 @@ export const id = {
     runway: 'Landasan PK-ARL · Medan',
   },
   actions: {
+    dropLaundry: "Jatuhkan cucian",
     contact: "Kirim pesan",
     dropParcel: "Jatuhkan paket",
     dropIngredient: "Jatuhkan bahan",
@@ -200,6 +209,11 @@ export const id = {
     viewSkills: "Lihat skill",
   },
   zones: {
+    laundry: {
+      start: "Misi Laundry Beres dimulai! 45 detik, masukkan cucian ke mesin cuci!",
+      in: "Cucian masuk! Skor {n}",
+      done: "Waktu habis! Skor laundry: {n}",
+    },
     firstVisit: "Stempel baru di paspor!",
     welcomeBack: "Selamat datang kembali",
     board: {

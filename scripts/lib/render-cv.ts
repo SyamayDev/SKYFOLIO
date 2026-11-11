@@ -2,10 +2,10 @@
  * Render CV siap cetak (/cv/, docs/07 bagian 10) dari konten publik. Ramah ATS (teks asli),
  * dua bahasa (data-l, dipilih lewat ?lang=id|en). Field needsConfirmation sudah dibuang sebelumnya.
  */
-import { escapeHtml as esc } from '../../src/content/markdown';
-import { pickText } from '../../src/content/public';
-import type { LText, SiteContent } from '../../src/content/schema';
-import { both, tx, yearRange } from './render-ringkas';
+import { escapeHtml as esc } from '../../src/content/markdown.ts';
+import { pickText } from '../../src/content/public.ts';
+import type { LText, SiteContent } from '../../src/content/schema.ts';
+import { both, tx, yearRange } from './render-ringkas.ts';
 
 type Loc = 'id' | 'en';
 

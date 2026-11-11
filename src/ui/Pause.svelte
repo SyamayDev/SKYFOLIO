@@ -86,7 +86,7 @@
     background: #fff;
     color: var(--ink);
     font-family: var(--font-title);
-    font-size: 18px;
+    font-size: calc(18px * var(--text-scale, 1));
     font-weight: 600;
     text-decoration: none;
     display: flex;
@@ -117,7 +117,7 @@
     align-self: flex-start;
     border: 0;
     background: transparent;
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale, 1));
     min-height: 40px;
     margin-bottom: 6px;
   }
@@ -136,7 +136,7 @@
     .menu button,
     .menu .button {
       min-height: 48px;
-      font-size: 16px;
+      font-size: calc(16px * var(--text-scale, 1));
     }
     h2 {
       margin-bottom: 6px;

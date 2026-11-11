@@ -170,6 +170,8 @@ export const AUTOPILOT = {
   APPROACH_AGL: 20,
   CLEARANCE: 9,
   ORBIT_RADIUS: 18,
+  /** Ketinggian mengitari pulau proyek: puncak mercusuar ±13 unit di atas laut, jadi 16 terlalu mepet. */
+  ISLAND_AGL: 24,
   /** Sudut miring yang diminta per radian salah arah, dan batas miringnya (radian). */
   BANK_GAIN: 1.1,
   MAX_BANK: 0.6,

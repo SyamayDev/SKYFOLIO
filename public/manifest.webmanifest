@@ -1,0 +1,16 @@
+{
+  "name": "SKYFOLIO — Portofolio 3D Syahril Maimubdy",
+  "short_name": "SKYFOLIO",
+  "description": "Terbangkan pesawat mainan keliling Bumi low-poly bersama co-pilot Piko.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#4DB8FF",
+  "theme_color": "#4DB8FF",
+  "lang": "id",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

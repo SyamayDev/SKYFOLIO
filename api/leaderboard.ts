@@ -5,9 +5,9 @@
  */
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
-import { moderateText } from './_lib/badwords';
-import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http';
-import { getStore } from './_lib/ratelimit';
+import { moderateText } from './_lib/badwords.js';
+import { HttpError, clientIp, hashIp, json, readJson, sameOrigin } from './_lib/http.js';
+import { getStore } from './_lib/ratelimit.js';
 
 export const RINGS = 24;
 export const MIN_LAP = 25;

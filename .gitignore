@@ -29,3 +29,6 @@ docs/references/*
 
 # Hasil generator konten (dibuat ulang saat dev/build)
 src/content/_generated/
+
+# Hasil audit performa lokal
+tests/perf/results/

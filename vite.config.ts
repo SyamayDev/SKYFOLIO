@@ -1,15 +1,20 @@
-import { apiPlugin } from './scripts/vite-plugin-api';
+import { apiPlugin } from './scripts/vite-plugin-api.ts';
+import { CSP, seoPlugin } from './scripts/seo.ts';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'node:path';
-import { contentPlugin } from './scripts/vite-plugin-content';
+import { contentPlugin } from './scripts/vite-plugin-content.ts';
 
 const root = import.meta.dirname;
 
 export default defineConfig(({ command }) => ({
-  plugins: [svelte(), contentPlugin(), apiPlugin()],
+  plugins: [svelte(), contentPlugin(), apiPlugin(), seoPlugin()],
   server: {
     port: 5173,
+  },
+  // Pratinjau memakai header keamanan yang sama dengan Vercel (supaya CSP teruji sebelum rilis).
+  preview: {
+    headers: { 'Content-Security-Policy': CSP, 'X-Content-Type-Options': 'nosniff' },
   },
   build: {
     target: 'es2022',

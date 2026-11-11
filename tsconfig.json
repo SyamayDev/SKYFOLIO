@@ -16,6 +16,7 @@
     "allowJs": false,
     "skipLibCheck": true,
     "noEmit": true,
+    "rewriteRelativeImportExtensions": true,
     "types": ["vite/client", "node", "svelte"]
   },
   "include": [
@@ -30,6 +31,7 @@
     "vite.config.ts",
     "playwright.config.ts",
     "playwright.shots.config.ts",
+    "playwright.perf.config.ts",
     "vitest.config.ts"
   ]
 }

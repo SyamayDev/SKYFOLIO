@@ -23,6 +23,8 @@
   color-scheme: light;
   /* Awal tumpukan tengah-atas (di bawah kompas). */
   --stack-top: calc(56px + var(--safe-top));
+  /* Pengali ukuran huruf UI (Pengaturan → Aksesibilitas → Teks besar). */
+  --text-scale: 1;
 }
 /* Tablet/HP portrait: tombol di baris atas, kompas turun ke baris kedua. */
 @media (max-width: 900px) and (min-height: 561px) {
@@ -45,6 +47,22 @@
   --panel: rgba(246, 236, 220, 0.9);
   --panel-strong: rgba(248, 240, 226, 0.97);
   --shadow: 0 10px 34px rgba(5, 10, 40, 0.45), 0 0 0 1px rgba(159, 216, 245, 0.18);
+}
+
+/* Aksesibilitas (Pengaturan → Aksesibilitas). Diletakkan setelah tema senja/malam supaya selalu menang. */
+:root[data-text-size='large'] {
+  --text-scale: 1.2;
+}
+:root[data-contrast='high'] {
+  --panel: #fffaf0;
+  --panel-strong: #ffffff;
+  --panel-ink: #111111;
+  --ink: #111111;
+  --shadow: 0 0 0 2px #111111, 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+:root[data-contrast='high'] :is(button, a, input, select, [tabindex]):focus-visible {
+  outline: 3px solid #111111 !important;
+  outline-offset: 2px;
 }
 
 * {

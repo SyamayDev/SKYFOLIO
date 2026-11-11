@@ -48,7 +48,7 @@
   }
   .side .bubble {
     border-radius: 18px 4px 18px 18px;
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale, 1));
     padding: 7px 11px;
   }
   .avatar {
@@ -65,14 +65,14 @@
     background: #fff;
     border-radius: 4px 18px 18px 18px;
     padding: 9px 14px;
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale, 1));
     line-height: 1.35;
     box-shadow: var(--shadow);
     min-width: 0;
   }
   .docked .bubble {
     border-radius: 18px 18px 4px 18px;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale, 1));
   }
   @keyframes pop {
     from {
