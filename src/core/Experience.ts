@@ -493,7 +493,7 @@ export class Experience {
     this.planet.setMaterial(this.terrainMaterial());
     this.scatter.setTier(this.quality.tier);
     this.life?.setTier(this.quality.tier);
-    detailCuller.scale = { low: 0.32, medium: 0.6, high: 1, ultra: 1.3 }[this.quality.tier];
+    detailCuller.scale = { low: 0.32, medium: 0.6, high: 0.8, ultra: 1.1 }[this.quality.tier];
     if (this.zones) {
       this.zones.markerRange = this.quality.tier === 'low' ? 650 : 1400;
       this.zones.maxMarkers = this.quality.tier === 'low' ? 5 : this.quality.tier === 'medium' ? 9 : 17;

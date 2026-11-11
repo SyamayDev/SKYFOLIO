@@ -389,7 +389,9 @@ export class HomeAirport {
       const w = 0.95;
       const h = 0.62;
       const d = 0.38;
-      this.luggageColors.push(colors[(placed + Math.round(along)) % colors.length]!);
+      // Modulo positif: posisi tumpukan bisa negatif (along < 0) → indeks negatif = undefined = koper putih.
+      const n = colors.length;
+      this.luggageColors.push(colors[(((placed + Math.round(along)) % n) + n) % n]!);
       // Proksi tak terlihat: pose rigid body ditulis ke sini, lalu disalin ke instans (lihat syncLuggage).
       const mesh = new Object3D();
       this.luggageProxies.push(mesh);
