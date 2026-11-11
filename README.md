@@ -1,19 +1,37 @@
-# SKYFOLIO — Paket Prompt untuk Claude Code
+# SKYFOLIO — Portofolio 3D Syahril Maimubdy (Aril)
 
-Paket ini berisi semua yang dibutuhkan Claude Code untuk membangun **SKYFOLIO**, portofolio 3D milik Syahril Maimubdy (Aril): Bumi low-poly yang dikelilingi biplane berfisika nyata bersama co-pilot cilik bernama Piko, dari landasan di Medan sampai ke Bulan.
+Pengunjung menerbangkan pesawat mainan PK-ARL yang berfisika nyata mengelilingi Bumi low-poly bersama co-pilot cilik Piko, dari landasan di Medan sampai ke Bulan. Setiap zona menyimpan satu bagian cerita Aril. Semua isi diambil dari folder `content/`.
 
-## Isi paket
+## Status
+
+Fase 0–5 selesai. Laporan tiap fase ada di `docs/progress/PHASE-*.md`, dan semua keputusan desain tercatat di `docs/decisions.md`. Situs online di **https://skyfolio-phi.vercel.app**. Panduan variabel lingkungan, Upstash, dan Web3Forms ada di `docs/progress/PHASE-5.md`.
+
+## Perintah
+
+| Perintah | Fungsi |
+| --- | --- |
+| `npm install` | Pasang semua paket (sekali saja) |
+| `npm run dev` | Situs lokal di http://localhost:5173; editor konten (Hangar) di http://localhost:5173/hangar/ |
+| `npm run build` lalu `npm run preview` | Coba hasil build produksi (dengan header keamanan yang sama seperti Vercel) |
+| `npm run typecheck`, `npm run lint`, `npm run test`, `npm run e2e` | Pemeriksaan kualitas |
+| `npm run shots` | Screenshot otomatis 4 ukuran layar ke `tests/shots/` |
+| `npm run perf` | Audit performa (`?autotest=1`) per tier kualitas |
+| `npm run validate:content` | Cek isi `content/` dan daftar data yang masih menunggu konfirmasimu |
+| `npm run build:cv` | Buat ulang CV PDF (ID & EN) dari `content/` |
+| `npm run ingest:certificates` | Proses PDF sertifikat di `content/certificates/pdf/` |
+
+## Struktur singkat
 
 ```text
-skyfolio-kit/
-├─ README.md            ← file ini (panduan untuk Aril)
-├─ CLAUDE.md            ← aturan utama, dibaca otomatis oleh Claude Code
-├─ CREDITS.md           ← daftar lisensi (diperbarui Claude Code)
-├─ .env.example         ← daftar variabel lingkungan
-├─ docs/                ← 12 dokumen desain lengkap + catatan keputusan
-├─ content/             ← SEMUA isi portofolio (data dirimu)
-└─ prompts/             ← prompt yang kamu tempel ke Claude Code, berurutan
+content/   ← isi portofolio (satu-satunya sumber fakta tentang Aril)
+src/       ← pengalaman 3D (three.js + Rapier) dan UI (Svelte)
+api/       ← Vercel Functions: copilot, lanterns, counters, leaderboard, health
+docs/      ← spesifikasi, keputusan, laporan fase, materi press (docs/press/)
+public/    ← aset statis (data planet, ikon, CV PDF, og.png)
+tests/     ← unit, e2e, performa
 ```
+
+> Bagian di bawah ini adalah panduan awal paket prompt (dipakai sejak Fase 0), disimpan sebagai referensi.
 
 ## Sebelum mulai
 

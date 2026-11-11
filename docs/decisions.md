@@ -101,3 +101,53 @@ Claude Code mencatat setiap keputusan penting yang tidak tertulis di dokumen lai
 | Post-processing | `RenderPipeline` three r187: Low tanpa efek, Medium vinyet + grading, High/Ultra + bloom (lebih kuat saat malam & kilat). Bisa dimatikan di Pengaturan | Anggaran performa per tier | — |
 | Ikon | Set ikon SVG sendiri (`src/ui/icons.ts`, garis 2 px membulat) dipakai HUD, menu, panel, peta, radar, toast, dan penanda 3D (Path2D). Avatar Piko vektor | Emoji tampil berbeda/jadi kotak di sebagian perangkat; permintaan Aril agar ikon lebih rapi | Emoji |
 | Tata letak responsif | Tumpukan tengah-atas (`TopStack`): label zona, autopilot, toast, tutorial, gelembung Piko dalam satu kolom flex. HP sentuh: meter di tengah bawah; portrait: tombol atas lebih kecil, kompas di baris kedua; landscape: gelembung Piko di kanan atas, menu jeda dua kolom. Checkbox → sakelar geser | Screenshot 4 viewport memperlihatkan elemen saling menimpa | Offset manual per elemen |
+
+### Fase 3: AI Co-Pilot Piko — 2026-11-10
+
+| Topik | Keputusan | Alasan | Alternatif yang ditolak |
+| --- | --- | --- | --- |
+| Urutan jawaban | **Router intent lokal dulu** (`src/ai/IntentRouter.ts`: normalisasi, stem "-nya", Damerau-Levenshtein dengan huruf pertama wajib sama, skor frasa). Skor ≥ 0,75 dijawab di klien tanpa jaringan; sisanya ke `/api/copilot`; gagal → FAQ terdekat / jawaban "belum tahu" | Mayoritas pertanyaan (navigasi, proyek, skill, kontak) bisa dijawab instan dan gratis; situs tetap pintar saat semua layanan mati | Semua pertanyaan ke AI |
+| FAQ | 68 entri dua bahasa di `content/faq.json`, diturunkan hanya dari isi `content/` | Aturan "jangan mengarang fakta"; FAQ juga jadi cadangan offline | FAQ tulisan bebas |
+| Kontrak AI | Balasan wajib JSON `{say, actions}` divalidasi zod; gagal parse → ulang sekali dengan instruksi lebih ketat → penyedia berikutnya. Maks. 2 aksi, nama tool & argumen divalidasi lagi di server **dan** klien | Model gratis kadang membungkus JSON dengan teks; aksi tidak boleh menggerakkan pesawat ke tujuan yang tidak ada | Teks bebas + regex |
+| Pengetahuan AI | `api/_generated/knowledge.ts` dibuat saat build dari `toPublicContent()` (field `needsConfirmation` sudah dibuang) | Server tidak membaca file konten mentah; data yang belum dikonfirmasi tidak mungkin bocor ke AI | Mengirim konten dari klien |
+| Batas pemakaian | 15 pertanyaan AI per IP per jam, 800 per hari global, IP di-hash (SHA-256 + `IP_HASH_SALT`, dipotong 12 byte). Upstash Redis REST bila ada, **memori proses** bila tidak | Tier gratis penyedia AI terbatas; tanpa Upstash situs tetap jalan | Tanpa batas |
+| Model penalaran | `max_tokens` 1200 + `reasoning_effort: "low"` untuk gpt-oss / Gemini 2.5–3.x / Qwen3; bila ditolak (HTTP 400) diulang polos | Groq mematikan Llama 3.3 70B (16 Agustus 2026); model produksinya kini gpt-oss yang memakai token berpikir dari jatah jawaban | Jatah 260 token untuk semua |
+| Mode Rekruter | Tur otomatis 7–13 detik per langkah: Menara Kontrol (profil) → 3 proyek unggulan → Pegunungan Skill → Arus Perjalanan → Kantor Pos (kontak), dengan tombol unduh CV; bisa diambil alih kapan saja | Rekruter punya waktu sedikit; tetap memakai autopilot fisika sungguhan | Video tur |
+| Celoteh Piko | 17 kejadian × 5 variasi kalimat, dibatasi tingkat kecerewetan di Pengaturan; teks saja | Tanpa suara bicara (permintaan Aril) | — |
+
+### Fase 4: game & sosial — 2026-11-10
+
+| Topik | Keputusan | Alasan | Alternatif yang ditolak |
+| --- | --- | --- | --- |
+| Skin | 9 skin = **cat ulang** model yang sama lewat shader remap warna (warna verteks dekat warna acuan → warna skin) | Satu model, satu draw call, tanpa unduhan tambahan; skin rahasia tetap bisa | Model terpisah per skin |
+| Achievement | 34 achievement di `src/game/Achievements.ts`, dicek dari event bus + pelacak per frame tanpa alokasi | Semua bisa dicapai offline; tersimpan di paspor (localStorage) | — |
+| Lampion | Teks ≤ 30 huruf, filter kata kasar lokal (+ moderasi AI bila ada), 1 lampion per IP per hari, simpan 64 terakhir | Konten publik wajib dimoderasi & dibatasi laju | Tanpa moderasi |
+| Leaderboard Sirkuit Langit | Token HMAC per putaran (`LEADERBOARD_SECRET`), validasi waktu minimum 25 detik & 24 cincin, simpan waktu terbaik per nama+IP per hari WIB, nama dimoderasi | Mencegah kiriman skor palsu sederhana tanpa akun | Skor dari klien apa adanya |
+| Counter global | km terbang, jumlah penerbangan, penyelam, kunjungan; dikirim tiap 5 detik bergabung (INCRBYFLOAT) | Hemat kuota Upstash gratis | Kirim per frame |
+| Mini-game laundry | Diorama SI-PANDRI: mini-game 45 detik, skor tercatat | Proyek terasa "bisa dimainkan", tetap fisika sungguhan | — |
+| Layar kedatangan | Gambar bagikan 1080×1920 dibuat di kanvas (tanpa server) + Web Share bila didukung | Gratis, jalan offline | Render di server |
+
+### Fase 5: poles & rilis — 2026-11-11
+
+| Topik | Keputusan | Alasan | Alternatif yang ditolak |
+| --- | --- | --- | --- |
+| CSP | Satu sumber di `scripts/seo.ts`, disalin ke `vercel.json` (dicek tes). `script-src 'self' 'wasm-unsafe-eval'` tanpa `'unsafe-inline'`; `connect-src` hanya Open-Meteo & Web3Forms | Wasm Rapier butuh `wasm-unsafe-eval` (bukan `unsafe-eval`); AI dipanggil lewat `/api` jadi tidak perlu domain AI di klien | CSP longgar |
+| Script inline | Pemilih bahasa/tema Mode Ringkas & CV dipindah ke `public/boot/*.js` (script biasa di `<head>`); tombol cetak CV memakai listener, bukan `onclick` | Lolos CSP tanpa `'unsafe-inline'`, tetap tanpa kedip bahasa. Ditemukan lewat uji `vite preview` dengan CSP produksi | Hash CSP per script |
+| SEO | Tag OG/Twitter/canonical/hreflang disisipkan saat build dengan URL absolut dari `VERCEL_PROJECT_PRODUCTION_URL` (atau `VITE_SITE_URL`); robots.txt & sitemap.xml dibuat saat build; `og.png` 1200×630 statis | Domain baru diketahui saat build di Vercel; link `hreflang` relatif ditolak Google | Domain ditulis manual |
+| Judul tab | Mengikuti zona yang sedang diterbangi ("Lembah Lampion Danau Toba · SKYFOLIO") | Checklist kompetisi docs/11 bagian 6 | — |
+| Fungsi Vercel | Import relatif di `api/` memakai akhiran `.js`; tsconfig memakai `rewriteRelativeImportExtensions` (bukan `allowImportingTsExtensions`) | Vercel mengompilasi tiap file `api/` ke ESM tanpa bundling (import tanpa ekstensi → `ERR_MODULE_NOT_FOUND`), dan memaksa `noEmit: false` sehingga `allowImportingTsExtensions` akan error. Diuji dengan simulasi kompilasi + jalan di Node ESM | Bundling manual |
+| Deteksi WebGPU | Adapter WebGPU dicek dulu; bila tidak ada, renderer langsung WebGL2 | Menghindari peringatan fallback three.js di console (Firefox lama, Chromium Playwright tanpa dxcompiler) | Biarkan three mencoba |
+| Audit performa | `?autotest=1` (bandara → pulau proyek → Pegunungan Skill → orbit → pulang) + `npm run perf` per tier; `PERF_GPU=1 PERF_CHANNEL=chrome` untuk GPU asli | Angka performa bisa diulang setiap rilis | Ukur manual |
+| Merge ke GitHub | Commit "skyfolio first commit" di GitHub (menghapus 110 file kode lama, menambah `SKYFOLIO-PROMPT-LENGKAP.md`) digabung dengan strategi *ours* + file prompt Aril ikut disertakan | Merge biasa akan ikut menghapus kode yang masih dipakai; tanpa force-push, riwayat Aril tetap utuh | Force-push |
+| Optimasi draw call | Koper bandara → 2 InstancedMesh (pose tetap dari rigid body masing-masing); papan teks → satu mesh dua sisi (`frontFacing`, `forceSinglePass`); pelat registrasi PK-ARL digabung; wajah & helm Aril dan headset Piko dipanggang ke mesh kepala; bidang kemudi, kaki roda, dan lengan karakter tidak berbayang; detail bandara ≤ 6 unit dipangkas dari jauh | Audit `?autotest=1` menemukan High 326 draw call (batas 250). Setelah optimasi: High puncak 242 | Mengurangi isi dunia |
+| Definisi anggaran draw call | High/Ultra: **puncak** ≤ 250. Low/Medium: **rata-rata** rute ≤ 120/180, puncak sesaat ≤ 180/220 | Puncak Low (±170) hanya terjadi sesaat saat masuk atmosfer dari orbit (separuh planet + efek roket). Langkah berikutnya: pesawat + karakter jadi satu SkinnedMesh (±40 draw call lebih hemat di semua tier) | Rata-rata saja untuk semua tier |
+| Autopilot ke pulau proyek | Mengitari di ketinggian 24 (sebelumnya 16) | Puncak mercusuar ±13; di 16 pesawat bisa menyenggolnya lalu jatuh ke laut (ditemukan audit otomatis) | — |
+| Autopilot ke orbit | Target vertikal (`arriveAltitude`): mengitari sambil menanjak dengan roket, tiba begitu ketinggian angkasa tercapai | Versi lama hanya mengecek jarak horizontal sehingga "bawa aku ke orbit" langsung dianggap tiba tanpa naik | — |
+| Teks besar | Semua ukuran huruf UI = `px × var(--text-scale)` (1,2 saat aktif) | Tidak merusak panel setinggi layar (CSS `zoom` akan membuat panel meluber) | `zoom` |
+| Kontras tinggi | Token tema solid (panel putih, tinta hitam, garis tepi 2 px, fokus 3 px) | Satu tempat, berlaku di semua komponen | Gaya per komponen |
+| Penanda buta warna | Palet Okabe–Ito untuk radar & peta; ikon tetap pembeda utama | Penanda tidak pernah hanya mengandalkan warna | — |
+| Reset progres | Tombol dua langkah di Pengaturan → Data | Mencegah terhapus tak sengaja tanpa dialog bawaan browser | `confirm()` |
+| STT (mikrofon) | Tidak dibuat | Aril tidak mau fitur suara; SpeechRecognition Chrome mengirim suara ke server Google; Permissions-Policy memblokir mikrofon | Tombol mikrofon |
+| Rahasia deploy | `IP_HASH_SALT`, `LEADERBOARD_SECRET`, `ADMIN_TOKEN` dibuat acak di `.env.local` (di-gitignore), tidak ditulis di laporan | Repo GitHub bisa publik | Ditulis di PHASE-5.md |
+| Radius detail High | Pemangkas detail kecil zona: High 170 → 136 unit (skala 0,8), Ultra 1,1 | Puncak High 277 → 234 draw call saat pulang dari orbit; papan & diorama tetap muncul jauh sebelum terbaca | Mematikan bloom di High |
+| Warna koper | Indeks warna memakai modulo positif | Tumpukan koper di posisi negatif menghasilkan indeks negatif → `undefined` → koper putih (bug lama, terlihat saat audit produksi) | — |
